@@ -10,5 +10,9 @@
       "import": "./src/index.ts",
       "types": "./src/index.ts"
     }
+  },
+  "dependencies": {
+    "robot3": "^1.2.0",
+    "zod": "^4.3.6"
   }
 }
