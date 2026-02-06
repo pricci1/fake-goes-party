@@ -1,0 +1,277 @@
+import {
+  createMachine,
+  state,
+  transition,
+  immediate,
+  guard,
+  reduce,
+} from "robot3";
+import type { GameContext } from "../schemas/index.ts";
+import { MIN_PLAYERS, WIN_THRESHOLD } from "../constants/index.ts";
+import {
+  getQmIndex,
+  getArtistIndices,
+  isFakeCaught,
+  findWinners,
+} from "../logic/index.ts";
+
+export function createGameMachine(initialContext: GameContext) {
+  const machine = createMachine(
+    "lobby",
+    {
+      lobby: state(
+        transition(
+          "START_GAME",
+          "setupQM",
+          guard((ctx: GameContext) => ctx.players.length >= MIN_PLAYERS),
+          reduce((ctx: GameContext) => ({ ...ctx, round: 0 }))
+        )
+      ),
+
+      setupQM: state(
+        immediate(
+          "categorySelection",
+          reduce((ctx: GameContext) => {
+            const qmIndex = getQmIndex(ctx.round, ctx.players.length);
+            return {
+              ...ctx,
+              qmIndex,
+              fakeArtistIndex: null,
+              category: "",
+              title: "",
+              votes: {},
+              drawRound: 0,
+              cards: [],
+              currentDrawerIdx: 0,
+              drawOrder: [],
+              fakeCaught: null,
+              fakeGuess: "",
+              correctGuess: null,
+              scoreMessage: "",
+            };
+          })
+        )
+      ),
+
+      categorySelection: state(
+        transition(
+          "SET_CATEGORY",
+          "cardDistribution",
+          reduce((ctx: GameContext, ev: any) => {
+            const artists = getArtistIndices(
+              ctx.players.length,
+              ctx.qmIndex
+            );
+            const cards = artists.map((i) => ({
+              playerIndex: i,
+              isFake: i === ev.fakeArtistIndex,
+            }));
+            return {
+              ...ctx,
+              category: ev.category,
+              title: ev.title,
+              fakeArtistIndex: ev.fakeArtistIndex,
+              cards,
+            };
+          })
+        )
+      ),
+
+      cardDistribution: state(
+        transition("CARDS_REVEALED", "colorSelection")
+      ),
+
+      colorSelection: state(
+        transition(
+          "COLORS_CHOSEN",
+          "drawingPhase",
+          reduce((ctx: GameContext) => {
+            const artists = getArtistIndices(
+              ctx.players.length,
+              ctx.qmIndex
+            );
+            return {
+              ...ctx,
+              drawRound: 1,
+              currentDrawerIdx: 0,
+              drawOrder: artists,
+            };
+          })
+        )
+      ),
+
+      drawingPhase: state(
+        transition(
+          "MARK_MADE",
+          "checkDrawing",
+          reduce((ctx: GameContext) => ({
+            ...ctx,
+            currentDrawerIdx: ctx.currentDrawerIdx + 1,
+          }))
+        )
+      ),
+
+      checkDrawing: state(
+        immediate(
+          "drawingPhase",
+          guard(
+            (ctx: GameContext) =>
+              ctx.currentDrawerIdx < ctx.drawOrder.length
+          )
+        ),
+        immediate(
+          "drawingPhase",
+          guard((ctx: GameContext) => ctx.drawRound < 2),
+          reduce((ctx: GameContext) => ({
+            ...ctx,
+            drawRound: 2,
+            currentDrawerIdx: 0,
+          }))
+        ),
+        immediate("voting")
+      ),
+
+      voting: state(
+        transition(
+          "SUBMIT_VOTES",
+          "evaluateVotes",
+          reduce((ctx: GameContext, ev: any) => ({
+            ...ctx,
+            votes: ev.votes,
+          }))
+        )
+      ),
+
+      evaluateVotes: state(
+        immediate(
+          "scoreFakeWins",
+          guard((ctx: GameContext) => {
+            return !isFakeCaught(ctx.votes, ctx.fakeArtistIndex!);
+          }),
+          reduce((ctx: GameContext) => ({ ...ctx, fakeCaught: false }))
+        ),
+        immediate(
+          "fakeArtistGuess",
+          reduce((ctx: GameContext) => ({ ...ctx, fakeCaught: true }))
+        )
+      ),
+
+      scoreFakeWins: state(
+        immediate(
+          "scoring",
+          reduce((ctx: GameContext) => {
+            const scores = [...ctx.scores];
+            scores[ctx.qmIndex] = (scores[ctx.qmIndex] ?? 0) + 2;
+            scores[ctx.fakeArtistIndex!] =
+              (scores[ctx.fakeArtistIndex!] ?? 0) + 2;
+            return {
+              ...ctx,
+              scores,
+              scoreMessage:
+                "The Fake Artist was NOT caught! QM and Fake Artist earn 2 points each.",
+            };
+          })
+        )
+      ),
+
+      fakeArtistGuess: state(
+        transition(
+          "GUESS_TITLE",
+          "evaluateGuess",
+          reduce((ctx: GameContext, ev: any) => ({
+            ...ctx,
+            fakeGuess: ev.guess,
+          }))
+        )
+      ),
+
+      evaluateGuess: state(
+        immediate(
+          "scoring",
+          guard(
+            (ctx: GameContext) =>
+              ctx.fakeGuess.trim().toLowerCase() ===
+              ctx.title.trim().toLowerCase()
+          ),
+          reduce((ctx: GameContext) => {
+            const scores = [...ctx.scores];
+            scores[ctx.qmIndex] = (scores[ctx.qmIndex] ?? 0) + 2;
+            scores[ctx.fakeArtistIndex!] =
+              (scores[ctx.fakeArtistIndex!] ?? 0) + 2;
+            return {
+              ...ctx,
+              scores,
+              correctGuess: true,
+              scoreMessage:
+                "The Fake Artist guessed correctly! QM and Fake Artist earn 2 points each.",
+            };
+          })
+        ),
+        immediate(
+          "scoring",
+          reduce((ctx: GameContext) => {
+            const scores = [...ctx.scores];
+            for (let i = 0; i < ctx.players.length; i++) {
+              if (i !== ctx.qmIndex && i !== ctx.fakeArtistIndex) {
+                scores[i] = (scores[i] ?? 0) + 1;
+              }
+            }
+            return {
+              ...ctx,
+              scores,
+              correctGuess: false,
+              scoreMessage:
+                "Wrong guess! All Artists earn 1 point each.",
+            };
+          })
+        )
+      ),
+
+      scoring: state(transition("CONTINUE", "checkWinner")),
+
+      checkWinner: state(
+        immediate(
+          "gameOver",
+          guard((ctx: GameContext) =>
+            ctx.scores.some((s) => s >= WIN_THRESHOLD)
+          ),
+          reduce((ctx: GameContext) => {
+            const winners = findWinners(
+              ctx.scores,
+              ctx.players,
+              WIN_THRESHOLD
+            );
+            return { ...ctx, winners };
+          })
+        ),
+        immediate(
+          "setupQM",
+          reduce((ctx: GameContext) => ({
+            ...ctx,
+            round: ctx.round + 1,
+            scoreMessage: "",
+            fakeGuess: "",
+            correctGuess: null,
+            fakeCaught: null,
+          }))
+        )
+      ),
+
+      gameOver: state(
+        transition(
+          "PLAY_AGAIN",
+          "lobby",
+          reduce((ctx: GameContext) => ({
+            ...ctx,
+            scores: ctx.players.map(() => 0),
+            round: 0,
+            winners: [],
+            scoreMessage: "",
+          }))
+        )
+      ),
+    },
+    (ctx: GameContext) => ctx
+  );
+  return { machine, initialContext };
+}

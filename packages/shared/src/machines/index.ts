@@ -1,1 +1,1 @@
-export { createDrawingMachine } from "./drawingMachine.ts";
+export { createGameMachine } from "./gameMachine.ts";
