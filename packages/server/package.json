@@ -1,0 +1,13 @@
+{
+  "name": "@fake-goes-party/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "module": "src/index.ts",
+  "dependencies": {
+    "@fake-goes-party/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
