@@ -7,7 +7,9 @@ function setup() {
   return interpret(machine, () => {});
 }
 
-function getState(service: ReturnType<typeof interpret>) {
+type DrawingService = ReturnType<typeof setup>;
+
+function getState(service: DrawingService) {
   return service.machine.current;
 }
 

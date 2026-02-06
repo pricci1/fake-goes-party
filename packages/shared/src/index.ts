@@ -1,10 +1,6 @@
-export const APP_NAME = "Fake Goes Party";
-
-export function greet(name: string): string {
-  return `Welcome to ${APP_NAME}, ${name}!`;
-}
-
-export type User = {
-  id: string;
-  name: string;
-};
+export * from "./constants/index.ts";
+export * from "./schemas/index.ts";
+export * from "./interfaces/index.ts";
+export * from "./logic/index.ts";
+export * from "./machines/index.ts";
+export * from "./local/index.ts";
