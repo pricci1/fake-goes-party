@@ -6,6 +6,8 @@ import { CardReveal } from "./CardReveal";
 import { ColorSelection } from "./ColorSelection";
 import { DrawingCanvas } from "./DrawingCanvas";
 import { VotingScreen } from "./VotingScreen";
+import { FakeArtistGuess } from "./FakeArtistGuess";
+import { Scoring } from "./Scoring";
 
 // Placeholder components — we'll build real ones in subsequent tasks
 function Placeholder({ phase }: { phase: string }) {
@@ -31,11 +33,11 @@ export function PhaseRouter() {
     case "checkDrawing":      return <DrawingCanvas />;
     case "voting":            return <VotingScreen />;
     case "evaluateVotes":     return <VotingScreen />;
-    case "scoreFakeWins":     return <Placeholder phase="scoreFakeWins" />;
-    case "fakeArtistGuess":   return <Placeholder phase="fakeArtistGuess" />;
-    case "evaluateGuess":     return <Placeholder phase="evaluateGuess" />;
-    case "scoring":           return <Placeholder phase="scoring" />;
-    case "checkWinner":       return <Placeholder phase="checkWinner" />;
+    case "scoreFakeWins":     return <Scoring />;
+    case "fakeArtistGuess":   return <FakeArtistGuess />;
+    case "evaluateGuess":     return <Scoring />;
+    case "scoring":           return <Scoring />;
+    case "checkWinner":       return <Scoring />;
     case "gameOver":          return <Placeholder phase="gameOver" />;
     default:                  return <Placeholder phase={`unknown: ${phase}`} />;
   }
