@@ -1,0 +1,114 @@
+import { useRef, useEffect, useCallback } from "react";
+import { useAtomValue } from "jotai";
+import { gameSnapshotAtom, strokesAtom } from "../atoms";
+import { useDrawing } from "../hooks/useDrawing";
+import { AVAILABLE_COLORS } from "@fake-goes-party/shared";
+import type { Point } from "@fake-goes-party/shared";
+import { DevicePassGuard } from "./DevicePassGuard";
+
+function drawStrokeOnCanvas(ctx: CanvasRenderingContext2D, points: Point[], color: string) {
+  if (points.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i].x, points[i].y);
+  }
+  ctx.stroke();
+}
+
+function getArtistColor(playerIndex: number, qmIndex: number, playerCount: number): string {
+  const artistIndices = Array.from({ length: playerCount }, (_, i) => i).filter(i => i !== qmIndex);
+  const artistPos = artistIndices.indexOf(playerIndex);
+  return AVAILABLE_COLORS[artistPos % AVAILABLE_COLORS.length];
+}
+
+export function DrawingCanvas() {
+  const snapshot = useAtomValue(gameSnapshotAtom);
+  const strokes = useAtomValue(strokesAtom);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const ctx = snapshot?.context;
+  const currentDrawerPlayerIndex = ctx?.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
+  const currentColor = ctx
+    ? getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length)
+    : AVAILABLE_COLORS[0];
+  const drawRound = (ctx?.drawRound ?? 1) as 1 | 2;
+
+  const drawing = useDrawing({
+    playerIndex: currentDrawerPlayerIndex,
+    color: currentColor,
+    drawRound,
+    enabled: !!snapshot,
+  });
+
+  const renderCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const canvasCtx = canvas.getContext("2d");
+    if (!canvasCtx) return;
+
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const stroke of strokes) {
+      drawStrokeOnCanvas(canvasCtx, stroke.points, stroke.color);
+    }
+
+    if (drawing.inProgressPoints.length > 0) {
+      drawStrokeOnCanvas(canvasCtx, drawing.inProgressPoints, currentColor);
+    }
+  }, [strokes, drawing.inProgressPoints, currentColor]);
+
+  useEffect(() => {
+    renderCanvas();
+  }, [renderCanvas]);
+
+  if (!snapshot || !ctx) return null;
+
+  const currentDrawer = ctx.players[currentDrawerPlayerIndex];
+
+  const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  return (
+    <DevicePassGuard playerName={currentDrawer?.name ?? "Player"} key={`${ctx.currentDrawerIdx}-${drawRound}`}>
+      <div className="flex flex-col items-center min-h-screen p-4 gap-4">
+        <div className="text-center">
+          <h2 className="text-xl font-bold">{currentDrawer?.name}'s turn</h2>
+          <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
+        </div>
+
+        <canvas
+          ref={canvasRef}
+          width={400}
+          height={400}
+          className="border-2 border-gray-300 rounded bg-white touch-none"
+          onPointerDown={(e) => {
+            const pt = getCanvasPoint(e);
+            drawing.handlePointerDown(pt.x, pt.y, e.pressure);
+          }}
+          onPointerMove={(e) => {
+            const pt = getCanvasPoint(e);
+            drawing.handlePointerMove(pt.x, pt.y, e.pressure);
+          }}
+          onPointerUp={() => drawing.handlePointerUp()}
+          onPointerLeave={() => drawing.handlePointerUp()}
+        />
+
+        {drawing.strokeDone && (
+          <p className="text-green-600 font-medium">Stroke submitted! Pass the device to the next player.</p>
+        )}
+      </div>
+    </DevicePassGuard>
+  );
+}
