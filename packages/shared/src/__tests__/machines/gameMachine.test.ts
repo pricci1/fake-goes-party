@@ -255,3 +255,88 @@ describe("gameMachine — determinism", () => {
     expect(a).toEqual(b);
   });
 });
+
+describe("gameMachine — player count edge cases", () => {
+  test("3 players (minimum) can complete a full round", () => {
+    const s = setup(3);
+    s.send({ type: "START_GAME" });
+    expect(getState(s)).toBe("categorySelection");
+
+    const artists = 2; // 3 players - 1 QM
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 1,
+    });
+    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "COLORS_CHOSEN" });
+    expect(getCtx(s).drawOrder.length).toBe(2);
+
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < artists; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    expect(getState(s)).toBe("voting");
+  });
+
+  test("10 players (maximum) can complete a full round", () => {
+    const s = setup(10);
+    s.send({ type: "START_GAME" });
+    expect(getState(s)).toBe("categorySelection");
+
+    const artists = 9; // 10 players - 1 QM
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Dog",
+      fakeArtistIndex: 5,
+    });
+    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "COLORS_CHOSEN" });
+    expect(getCtx(s).drawOrder.length).toBe(9);
+
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < artists; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    expect(getState(s)).toBe("voting");
+  });
+});
+
+describe("gameMachine — invalid events for state", () => {
+  test("MARK_MADE in lobby has no effect", () => {
+    const s = setup(4);
+    s.send({ type: "MARK_MADE" });
+    expect(getState(s)).toBe("lobby");
+  });
+
+  test("SET_CATEGORY in lobby has no effect", () => {
+    const s = setup(4);
+    s.send({
+      type: "SET_CATEGORY",
+      category: "X",
+      title: "Y",
+      fakeArtistIndex: 0,
+    });
+    expect(getState(s)).toBe("lobby");
+  });
+
+  test("SUBMIT_VOTES in drawingPhase has no effect", () => {
+    const s = setup(4);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "COLORS_CHOSEN" });
+    expect(getState(s)).toBe("drawingPhase");
+    s.send({ type: "SUBMIT_VOTES", votes: { "1": 2 } });
+    expect(getState(s)).toBe("drawingPhase");
+  });
+});
