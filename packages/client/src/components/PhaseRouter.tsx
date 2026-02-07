@@ -10,19 +10,16 @@ import { FakeArtistGuess } from "./FakeArtistGuess";
 import { Scoring } from "./Scoring";
 import { GameOver } from "./GameOver";
 
-// Placeholder components — we'll build real ones in subsequent tasks
-function Placeholder({ phase }: { phase: string }) {
+function Loading() {
   return (
     <div className="flex items-center justify-center h-screen">
-      <p className="text-xl">Phase: {phase}</p>
+      <p className="text-xl text-gray-500">Loading...</p>
     </div>
   );
 }
 
 export function PhaseRouter() {
   const phase = useAtomValue(currentPhaseAtom);
-
-  if (!phase) return <Placeholder phase="loading" />;
 
   switch (phase) {
     case "lobby":             return <Lobby />;
@@ -40,6 +37,6 @@ export function PhaseRouter() {
     case "scoring":           return <Scoring />;
     case "checkWinner":       return <Scoring />;
     case "gameOver":          return <GameOver />;
-    default:                  return <Placeholder phase={`unknown: ${phase}`} />;
+    default:                  return <Loading />;
   }
 }
