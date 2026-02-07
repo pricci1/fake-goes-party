@@ -12,6 +12,7 @@ interface UseDrawingOptions {
 export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawingOptions) {
   const { drawSync, dispatch } = useGame();
   const [inProgressPoints, setInProgressPoints] = useState<Point[]>([]);
+  const pointsRef = useRef<Point[]>([]);
   const isDrawingRef = useRef(false);
   const [strokeDone, setStrokeDone] = useState(false);
 
@@ -19,7 +20,9 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
     (x: number, y: number, pressure?: number) => {
       if (!enabled || strokeDone) return;
       isDrawingRef.current = true;
-      setInProgressPoints([{ x, y, pressure }]);
+      const nextPoints = [{ x, y, pressure }];
+      pointsRef.current = nextPoints;
+      setInProgressPoints(nextPoints);
     },
     [enabled, strokeDone]
   );
@@ -27,7 +30,11 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
   const handlePointerMove = useCallback(
     (x: number, y: number, pressure?: number) => {
       if (!isDrawingRef.current) return;
-      setInProgressPoints((prev) => [...prev, { x, y, pressure }]);
+      setInProgressPoints((prev) => {
+        const nextPoints = [...prev, { x, y, pressure }];
+        pointsRef.current = nextPoints;
+        return nextPoints;
+      });
     },
     []
   );
@@ -35,26 +42,23 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
   const handlePointerUp = useCallback(() => {
     if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
+    const currentPoints = pointsRef.current;
+    if (currentPoints.length === 0) return;
 
-    setInProgressPoints((currentPoints) => {
-      if (currentPoints.length === 0) return currentPoints;
+    const stroke: Stroke = {
+      id: crypto.randomUUID(),
+      playerIndex,
+      color,
+      points: currentPoints,
+      drawRound,
+      timestamp: Date.now(),
+    };
 
-      const stroke: Stroke = {
-        id: crypto.randomUUID(),
-        playerIndex,
-        color,
-        points: currentPoints,
-        drawRound,
-        timestamp: Date.now(),
-      };
-
-      drawSync.pushStroke(stroke);
-      dispatch({ type: "MARK_MADE" });
-      setStrokeDone(true);
-      return [];
-    });
-
-    return undefined;
+    drawSync.pushStroke(stroke);
+    dispatch({ type: "MARK_MADE" });
+    setStrokeDone(true);
+    pointsRef.current = [];
+    setInProgressPoints([]);
   }, [playerIndex, color, drawRound, drawSync, dispatch]);
 
   const resetStroke = useCallback(() => {
