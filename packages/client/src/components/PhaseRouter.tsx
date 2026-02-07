@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { currentPhaseAtom } from "../atoms";
 import { Lobby } from "./Lobby";
+import { CategorySelection } from "./CategorySelection";
 
 // Placeholder components — we'll build real ones in subsequent tasks
 function Placeholder({ phase }: { phase: string }) {
@@ -18,8 +19,8 @@ export function PhaseRouter() {
 
   switch (phase) {
     case "lobby":             return <Lobby />;
-    case "setupQM":           return <Placeholder phase="setupQM" />;
-    case "categorySelection": return <Placeholder phase="categorySelection" />;
+    case "setupQM":           return <CategorySelection />;
+    case "categorySelection": return <CategorySelection />;
     case "cardDistribution":  return <Placeholder phase="cardDistribution" />;
     case "colorSelection":    return <Placeholder phase="colorSelection" />;
     case "drawingPhase":      return <Placeholder phase="drawingPhase" />;
