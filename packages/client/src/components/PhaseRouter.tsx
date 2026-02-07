@@ -8,6 +8,7 @@ import { DrawingCanvas } from "./DrawingCanvas";
 import { VotingScreen } from "./VotingScreen";
 import { FakeArtistGuess } from "./FakeArtistGuess";
 import { Scoring } from "./Scoring";
+import { GameOver } from "./GameOver";
 
 // Placeholder components — we'll build real ones in subsequent tasks
 function Placeholder({ phase }: { phase: string }) {
@@ -38,7 +39,7 @@ export function PhaseRouter() {
     case "evaluateGuess":     return <Scoring />;
     case "scoring":           return <Scoring />;
     case "checkWinner":       return <Scoring />;
-    case "gameOver":          return <Placeholder phase="gameOver" />;
+    case "gameOver":          return <GameOver />;
     default:                  return <Placeholder phase={`unknown: ${phase}`} />;
   }
 }
