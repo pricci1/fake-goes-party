@@ -59,7 +59,11 @@ describe("gameMachine — category selection", () => {
     expect(ctx.category).toBe("Animals");
     expect(ctx.title).toBe("Cat");
     expect(ctx.fakeArtistIndex).toBe(2);
-    expect(ctx.cards.length).toBeGreaterThan(0);
+    expect(ctx.cards.length).toBe(3); // 4 players - 1 QM = 3 artists
+    expect(ctx.cards.filter((c) => c.isFake).length).toBe(1);
+    const fakeCard = ctx.cards.find((c) => c.isFake);
+    expect(fakeCard).toBeDefined();
+    expect(fakeCard!.playerIndex).toBe(2); // matches fakeArtistIndex
   });
 });
 
