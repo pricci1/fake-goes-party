@@ -99,12 +99,24 @@ describe("gameMachine — drawing flow", () => {
     // Should still be in drawingPhase (round 2 started)
     expect(getState(s)).toBe("drawingPhase");
     expect(getCtx(s).drawRound).toBe(2);
+    expect(getCtx(s).currentDrawerIdx).toBe(0);
     // Round 2
     for (let i = 0; i < artistCount; i++) {
       expect(getState(s)).toBe("drawingPhase");
       s.send({ type: "MARK_MADE" });
     }
     expect(getState(s)).toBe("voting");
+  });
+
+  test("finishing first round does not skip to voting", () => {
+    const s = setupToDrawing(5);
+    const artistCount = 4;
+    for (let i = 0; i < artistCount; i++) {
+      s.send({ type: "MARK_MADE" });
+    }
+    expect(getState(s)).toBe("drawingPhase");
+    expect(getCtx(s).drawRound).toBe(2);
+    expect(getCtx(s).currentDrawerIdx).toBe(0);
   });
 });
 
