@@ -3,6 +3,7 @@ import { currentPhaseAtom } from "../atoms";
 import { Lobby } from "./Lobby";
 import { CategorySelection } from "./CategorySelection";
 import { CardReveal } from "./CardReveal";
+import { ColorSelection } from "./ColorSelection";
 
 // Placeholder components — we'll build real ones in subsequent tasks
 function Placeholder({ phase }: { phase: string }) {
@@ -23,7 +24,7 @@ export function PhaseRouter() {
     case "setupQM":           return <CategorySelection />;
     case "categorySelection": return <CategorySelection />;
     case "cardDistribution":  return <CardReveal />;
-    case "colorSelection":    return <Placeholder phase="colorSelection" />;
+    case "colorSelection":    return <ColorSelection />;
     case "drawingPhase":      return <Placeholder phase="drawingPhase" />;
     case "checkDrawing":      return <Placeholder phase="checkDrawing" />;
     case "voting":            return <Placeholder phase="voting" />;
