@@ -88,3 +88,31 @@ describe("LocalGameAuthority", () => {
     expect(auth.getSnapshot().state).toBe("scoring");
   });
 });
+
+describe("LocalGameAuthority — event validation", () => {
+  test("rejects event with missing required fields", () => {
+    const auth = createAuthority();
+    const snapshots: GameSnapshot[] = [];
+    auth.subscribe((s) => snapshots.push(s));
+    // @ts-expect-error — intentionally invalid event
+    auth.dispatch({ type: "SET_CATEGORY" });
+    expect(auth.getSnapshot().state).toBe("lobby");
+    expect(snapshots.length).toBe(0);
+  });
+
+  test("rejects event with unknown type", () => {
+    const auth = createAuthority();
+    const snapshots: GameSnapshot[] = [];
+    auth.subscribe((s) => snapshots.push(s));
+    // @ts-expect-error — intentionally invalid event
+    auth.dispatch({ type: "EXPLODE" });
+    expect(auth.getSnapshot().state).toBe("lobby");
+    expect(snapshots.length).toBe(0);
+  });
+
+  test("accepts valid events after validation", () => {
+    const auth = createAuthority();
+    auth.dispatch({ type: "START_GAME" });
+    expect(auth.getSnapshot().state).toBe("categorySelection");
+  });
+});
