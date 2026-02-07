@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { APP_NAME, greet } from '@fake-goes-party/shared'
 import reactLogo from './assets/react.svg'
 import appLogo from '/favicon.svg'
 import PWABadge from './PWABadge.tsx'
@@ -18,9 +17,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>{APP_NAME}</h1>
-      <p>{greet('Player')}</p>
-      <div className="card">
+      <div className="card bg-amber-300">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
