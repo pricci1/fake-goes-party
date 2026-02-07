@@ -1,6 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useMemo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import type { Point, Stroke } from "@fake-goes-party/shared";
 import { useGame } from "../providers/GameProvider";
+import { drawingStateFamily } from "../atoms";
 
 interface UseDrawingOptions {
   playerIndex: number;
@@ -11,39 +13,28 @@ interface UseDrawingOptions {
 
 export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawingOptions) {
   const { drawSync, dispatch } = useGame();
-  const [inProgressPoints, setInProgressPoints] = useState<Point[]>([]);
-  const pointsRef = useRef<Point[]>([]);
-  const isDrawingRef = useRef(false);
-  const [strokeDone, setStrokeDone] = useState(false);
+  const drawingKey = useMemo(() => `${playerIndex}-${drawRound}`, [playerIndex, drawRound]);
+  const drawingAtom = useMemo(() => drawingStateFamily(drawingKey), [drawingKey]);
+  const drawingState = useAtomValue(drawingAtom);
+  const setDrawingState = useSetAtom(drawingAtom);
 
-  const handlePointerDown = useCallback(
-    (x: number, y: number, pressure?: number) => {
-      if (!enabled || strokeDone) return;
-      isDrawingRef.current = true;
-      const nextPoints = [{ x, y, pressure }];
-      pointsRef.current = nextPoints;
-      setInProgressPoints(nextPoints);
-    },
-    [enabled, strokeDone]
-  );
+  const handlePointerDown = (x: number, y: number, pressure?: number) => {
+    const point: Point = { x, y, pressure };
+    setDrawingState({ type: "POINTER_DOWN", point, enabled });
+  };
 
-  const handlePointerMove = useCallback(
-    (x: number, y: number, pressure?: number) => {
-      if (!isDrawingRef.current) return;
-      setInProgressPoints((prev) => {
-        const nextPoints = [...prev, { x, y, pressure }];
-        pointsRef.current = nextPoints;
-        return nextPoints;
-      });
-    },
-    []
-  );
+  const handlePointerMove = (x: number, y: number, pressure?: number) => {
+    const point: Point = { x, y, pressure };
+    setDrawingState({ type: "POINTER_MOVE", point });
+  };
 
-  const handlePointerUp = useCallback(() => {
-    if (!isDrawingRef.current) return;
-    isDrawingRef.current = false;
-    const currentPoints = pointsRef.current;
-    if (currentPoints.length === 0) return;
+  const handlePointerUp = () => {
+    if (!drawingState.isDrawing) return;
+    const currentPoints = drawingState.inProgressPoints;
+    if (currentPoints.length === 0) {
+      setDrawingState({ type: "END_STROKE", strokeDone: drawingState.strokeDone });
+      return;
+    }
 
     const stroke: Stroke = {
       id: crypto.randomUUID(),
@@ -56,19 +47,16 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
 
     drawSync.pushStroke(stroke);
     dispatch({ type: "MARK_MADE" });
-    setStrokeDone(true);
-    pointsRef.current = [];
-    setInProgressPoints([]);
-  }, [playerIndex, color, drawRound, drawSync, dispatch]);
+    setDrawingState({ type: "END_STROKE", strokeDone: true });
+  };
 
-  const resetStroke = useCallback(() => {
-    setStrokeDone(false);
-    setInProgressPoints([]);
-  }, []);
+  const resetStroke = () => {
+    setDrawingState({ type: "RESET" });
+  };
 
   return {
-    inProgressPoints,
-    strokeDone,
+    inProgressPoints: drawingState.inProgressPoints,
+    strokeDone: drawingState.strokeDone,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,

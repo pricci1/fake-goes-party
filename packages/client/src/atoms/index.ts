@@ -1,2 +1,2 @@
 export * from "./gameAtoms";
-export * from "./drawAtoms";
+export { strokesAtom, drawingStateFamily } from "./drawAtoms";
