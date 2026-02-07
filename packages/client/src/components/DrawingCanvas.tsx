@@ -26,23 +26,22 @@ function getArtistColor(playerIndex: number, qmIndex: number, playerCount: numbe
   return AVAILABLE_COLORS[artistPos % AVAILABLE_COLORS.length];
 }
 
-export function DrawingCanvas() {
-  const snapshot = useAtomValue(gameSnapshotAtom);
+interface DrawingCanvasInnerProps {
+  playerIndex: number;
+  color: string;
+  drawRound: 1 | 2;
+  playerName: string;
+}
+
+function DrawingCanvasInner({ playerIndex, color, drawRound, playerName }: DrawingCanvasInnerProps) {
   const strokes = useAtomValue(strokesAtom);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const ctx = snapshot?.context;
-  const currentDrawerPlayerIndex = ctx?.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
-  const currentColor = ctx
-    ? getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length)
-    : AVAILABLE_COLORS[0];
-  const drawRound = (ctx?.drawRound ?? 1) as 1 | 2;
-
   const drawing = useDrawing({
-    playerIndex: currentDrawerPlayerIndex,
-    color: currentColor,
+    playerIndex,
+    color,
     drawRound,
-    enabled: !!snapshot,
+    enabled: true,
   });
 
   const renderCanvas = useCallback(() => {
@@ -58,17 +57,13 @@ export function DrawingCanvas() {
     }
 
     if (drawing.inProgressPoints.length > 0) {
-      drawStrokeOnCanvas(canvasCtx, drawing.inProgressPoints, currentColor);
+      drawStrokeOnCanvas(canvasCtx, drawing.inProgressPoints, color);
     }
-  }, [strokes, drawing.inProgressPoints, currentColor]);
+  }, [strokes, drawing.inProgressPoints, color]);
 
   useEffect(() => {
     renderCanvas();
   }, [renderCanvas]);
-
-  if (!snapshot || !ctx) return null;
-
-  const currentDrawer = ctx.players[currentDrawerPlayerIndex];
 
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -81,34 +76,56 @@ export function DrawingCanvas() {
   };
 
   return (
-    <DevicePassGuard playerName={currentDrawer?.name ?? "Player"} key={`${ctx.currentDrawerIdx}-${drawRound}`}>
-      <div className="flex flex-col items-center min-h-screen p-4 gap-4">
-        <div className="text-center">
-          <h2 className="text-xl font-bold">{currentDrawer?.name}'s turn</h2>
-          <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
-        </div>
-
-        <canvas
-          ref={canvasRef}
-          width={400}
-          height={400}
-          className="border-2 border-gray-300 rounded bg-white touch-none"
-          onPointerDown={(e) => {
-            const pt = getCanvasPoint(e);
-            drawing.handlePointerDown(pt.x, pt.y, e.pressure);
-          }}
-          onPointerMove={(e) => {
-            const pt = getCanvasPoint(e);
-            drawing.handlePointerMove(pt.x, pt.y, e.pressure);
-          }}
-          onPointerUp={() => drawing.handlePointerUp()}
-          onPointerLeave={() => drawing.handlePointerUp()}
-        />
-
-        {drawing.strokeDone && (
-          <p className="text-green-600 font-medium">Stroke submitted! Pass the device to the next player.</p>
-        )}
+    <div className="flex flex-col items-center min-h-screen p-4 gap-4">
+      <div className="text-center">
+        <h2 className="text-xl font-bold">{playerName}'s turn</h2>
+        <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
       </div>
+
+      <canvas
+        ref={canvasRef}
+        width={400}
+        height={400}
+        className="border-2 border-gray-300 rounded bg-white touch-none"
+        onPointerDown={(e) => {
+          const pt = getCanvasPoint(e);
+          drawing.handlePointerDown(pt.x, pt.y, e.pressure);
+        }}
+        onPointerMove={(e) => {
+          const pt = getCanvasPoint(e);
+          drawing.handlePointerMove(pt.x, pt.y, e.pressure);
+        }}
+        onPointerUp={() => drawing.handlePointerUp()}
+        onPointerLeave={() => drawing.handlePointerUp()}
+      />
+
+      {drawing.strokeDone && (
+        <p className="text-green-600 font-medium">Stroke submitted! Pass the device to the next player.</p>
+      )}
+    </div>
+  );
+}
+
+export function DrawingCanvas() {
+  const snapshot = useAtomValue(gameSnapshotAtom);
+
+  const ctx = snapshot?.context;
+  if (!snapshot || !ctx) return null;
+
+  const currentDrawerPlayerIndex = ctx.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
+  const currentColor = getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length);
+  const drawRound = (ctx.drawRound ?? 1) as 1 | 2;
+  const currentDrawer = ctx.players[currentDrawerPlayerIndex];
+
+  return (
+    <DevicePassGuard playerName={currentDrawer?.name ?? "Player"} key={`${ctx.currentDrawerIdx}-${drawRound}`}>
+      <DrawingCanvasInner
+        key={`${ctx.currentDrawerIdx}-${drawRound}`}
+        playerIndex={currentDrawerPlayerIndex}
+        color={currentColor}
+        drawRound={drawRound}
+        playerName={currentDrawer?.name ?? "Player"}
+      />
     </DevicePassGuard>
   );
 }
