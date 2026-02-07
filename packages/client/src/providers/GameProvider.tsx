@@ -39,8 +39,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     // Seed initial snapshot
     setSnapshot(services.authority.getSnapshot());
 
+    let lastRound = -1;
+
     const unsubGame = services.authority.subscribe((snapshot) => {
       setSnapshot(snapshot);
+
+      if (snapshot.context.round !== lastRound) {
+        lastRound = snapshot.context.round;
+        services.drawSync.clear();
+        setStrokes([]);
+      }
     });
 
     const unsubDraw = services.drawSync.onStroke(() => {
