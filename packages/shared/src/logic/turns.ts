@@ -27,5 +27,5 @@ export function findWinners(
 ): Player[] {
   const maxScore = Math.max(...scores);
   if (maxScore < threshold) return [];
-  return players.filter((_, i) => scores[i] === maxScore);
+  return players.filter((_, i) => (scores[i] ?? 0) === maxScore);
 }
