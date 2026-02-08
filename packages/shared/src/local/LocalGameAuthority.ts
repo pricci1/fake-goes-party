@@ -24,18 +24,18 @@ export class LocalGameAuthority implements GameAuthority {
     }
     const validEvent = parsed.data;
 
-    const currentState = this.service.machine.current as string;
+    const currentState = this.service.machine.current;
 
     if (currentState === "lobby") {
       if (validEvent.type === "ADD_PLAYER") {
-        const ctx = this.service.context as GameContext;
+        const ctx = this.service.context;
         ctx.players.push(validEvent.player);
         ctx.scores.push(0);
         this.notifyListeners();
         return;
       }
       if (validEvent.type === "REMOVE_PLAYER") {
-        const ctx = this.service.context as GameContext;
+        const ctx = this.service.context;
         ctx.players.splice(validEvent.playerIndex, 1);
         ctx.scores.splice(validEvent.playerIndex, 1);
         this.notifyListeners();
@@ -43,7 +43,7 @@ export class LocalGameAuthority implements GameAuthority {
       }
     }
 
-    this.service.send(validEvent as any);
+    this.service.send(validEvent);
   }
 
   subscribe(listener: (snapshot: GameSnapshot) => void): Unsubscribe {
@@ -56,7 +56,7 @@ export class LocalGameAuthority implements GameAuthority {
   getSnapshot(): GameSnapshot {
     return {
       state: this.service.machine.current as GameSnapshot["state"],
-      context: this.service.context as GameContext,
+      context: this.service.context,
     };
   }
 
