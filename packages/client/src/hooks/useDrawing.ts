@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { Point, Stroke } from "@fake-goes-party/shared";
 import { useGame } from "../providers/GameProvider";
@@ -17,6 +17,10 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
   const drawingAtom = useMemo(() => drawingStateFamily(drawingKey), [drawingKey]);
   const drawingState = useAtomValue(drawingAtom);
   const setDrawingState = useSetAtom(drawingAtom);
+
+  useEffect(() => {
+    setDrawingState({ type: "RESET" });
+  }, [setDrawingState, playerIndex, drawRound]);
 
   const handlePointerDown = (x: number, y: number, pressure?: number) => {
     const point: Point = { x, y, pressure };
