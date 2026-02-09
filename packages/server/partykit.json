@@ -1,0 +1,8 @@
+{
+  "name": "fake-goes-party",
+  "main": "src/index.ts",
+  "parties": {
+    "game": "src/parties/game.ts",
+    "drawing": "src/parties/drawing.ts"
+  }
+}
