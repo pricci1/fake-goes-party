@@ -9,7 +9,7 @@ import {
   type DrawSync,
   type GameEvent,
 } from "@fake-goes-party/shared";
-import { gameSnapshotAtom, myPlayerIndexAtom } from "./gameAtoms";
+import { gameSnapshotAtom } from "./gameAtoms";
 import { strokesAtom } from "./drawAtoms";
 import { gameModeAtom, roomIdAtom } from "./modeAtoms";
 
@@ -52,7 +52,7 @@ export const gameBootstrapAtom = atom(null, (get, set) => {
 });
 
 gameBootstrapAtom.onMount = (setAtom) => {
-  setAtom(gameBootstrapAtom);
+  setAtom();
 };
 
 export const gameSubscriptionsAtom = atom(null);

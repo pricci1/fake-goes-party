@@ -1,7 +1,7 @@
 import { interpret } from "robot3";
 import type { GameAuthority, Unsubscribe } from "../interfaces/index.ts";
 import { GameEventSchema } from "../schemas/index.ts";
-import type { GameEvent, GameSnapshot, GameContext } from "../schemas/index.ts";
+import type { GameEvent, GameSnapshot } from "../schemas/index.ts";
 import { createGameMachine } from "../machines/index.ts";
 import { createInitialContext } from "../logic/index.ts";
 

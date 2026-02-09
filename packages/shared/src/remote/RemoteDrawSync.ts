@@ -1,6 +1,5 @@
-import type { DrawSync } from "../interfaces/index.ts";
+import type { DrawSync, Unsubscribe } from "../interfaces/index.ts";
 import type { Stroke } from "../schemas/index.ts";
-import type { Unsubscribe } from "../interfaces/index.ts";
 
 export class RemoteDrawSync implements DrawSync {
   private ws: WebSocket | null = null;
@@ -9,11 +8,12 @@ export class RemoteDrawSync implements DrawSync {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private roomId: string;
+  private partyHost: string;
 
-  constructor(
-    private roomId: string,
-    private partyHost: string = "localhost:1999"
-  ) {
+  constructor(roomId: string, partyHost: string = "localhost:1999") {
+    this.roomId = roomId;
+    this.partyHost = partyHost;
     this.connect();
   }
 

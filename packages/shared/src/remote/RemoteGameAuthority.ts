@@ -8,11 +8,12 @@ export class RemoteGameAuthority implements GameAuthority {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private roomId: string;
+  private partyHost: string;
 
-  constructor(
-    private roomId: string,
-    private partyHost: string = "localhost:1999"
-  ) {
+  constructor(roomId: string, partyHost: string = "localhost:1999") {
+    this.roomId = roomId;
+    this.partyHost = partyHost;
     this.connect();
   }
 
