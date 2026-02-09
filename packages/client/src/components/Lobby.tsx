@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAtomValue } from "jotai";
-import { playersAtom } from "../atoms";
+import { useAtomValue, useSetAtom } from "jotai";
+import { myPlayerIndexAtom, playersAtom } from "../atoms";
 import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
@@ -10,6 +10,7 @@ export function Lobby() {
   const players = useAtomValue(playersAtom);
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
+  const setMyPlayerIndex = useSetAtom(myPlayerIndexAtom);
   const [name, setName] = useState("");
 
   const addPlayer = () => {
@@ -19,6 +20,9 @@ export function Lobby() {
       type: "ADD_PLAYER",
       player: { id: crypto.randomUUID(), name: trimmed },
     });
+    if (mode === "remote") {
+      setMyPlayerIndex(players.length);
+    }
     setName("");
   };
 
