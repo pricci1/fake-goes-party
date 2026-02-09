@@ -1,9 +1,17 @@
 import { atom } from "jotai";
 import { getDefaultStore } from "jotai/vanilla";
-import { LocalGameAuthority, LocalDrawSync } from "@fake-goes-party/shared";
-import type { GameAuthority, DrawSync, GameEvent } from "@fake-goes-party/shared";
+import {
+  LocalGameAuthority,
+  LocalDrawSync,
+  RemoteGameAuthority,
+  RemoteDrawSync,
+  type GameAuthority,
+  type DrawSync,
+  type GameEvent,
+} from "@fake-goes-party/shared";
 import { gameSnapshotAtom } from "./gameAtoms";
 import { strokesAtom } from "./drawAtoms";
+import { gameModeAtom, roomIdAtom } from "./modeAtoms";
 
 export interface GameServices {
   authority: GameAuthority;
@@ -15,8 +23,27 @@ export const gameServicesAtom = atom<GameServices | null>(null);
 
 export const gameBootstrapAtom = atom(null, (get, set) => {
   if (get(gameServicesAtom)) return;
-  const authority = new LocalGameAuthority();
-  const drawSync = new LocalDrawSync();
+
+  const mode = get(gameModeAtom);
+  const roomId = get(roomIdAtom);
+
+  let authority: GameAuthority;
+  let drawSync: DrawSync;
+
+  if (mode === "local") {
+    authority = new LocalGameAuthority();
+    drawSync = new LocalDrawSync();
+  } else if (mode === "remote") {
+    if (!roomId) {
+      throw new Error("Room ID required for remote mode");
+    }
+    const partyHost = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
+    authority = new RemoteGameAuthority(roomId, partyHost);
+    drawSync = new RemoteDrawSync(roomId, partyHost);
+  } else {
+    throw new Error(`Unknown game mode: ${mode}`);
+  }
+
   set(gameServicesAtom, {
     authority,
     drawSync,
