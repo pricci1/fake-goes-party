@@ -1,9 +1,21 @@
+import { useAtomValue } from "jotai";
+import { gameModeAtom } from "./atoms/modeAtoms";
+import { ModeSelection } from "./components/ModeSelection";
 import { PhaseRouter } from "./components/PhaseRouter";
+import { GameProvider } from "./providers/GameProvider";
+import PWABadge from "./PWABadge";
 
 export default function App() {
+  const mode = useAtomValue(gameModeAtom);
+
+  if (!mode) {
+    return <ModeSelection />;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <GameProvider>
       <PhaseRouter />
-    </div>
+      <PWABadge />
+    </GameProvider>
   );
 }
