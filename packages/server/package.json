@@ -4,8 +4,13 @@
   "private": true,
   "type": "module",
   "module": "src/index.ts",
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
+  },
   "dependencies": {
-    "@fake-goes-party/shared": "workspace:*"
+    "@fake-goes-party/shared": "workspace:*",
+    "partykit": "^0.0.115"
   },
   "devDependencies": {
     "@types/bun": "latest"
