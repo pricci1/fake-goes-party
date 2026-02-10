@@ -27,6 +27,8 @@ export function PhaseRouter() {
   const players = useAtomValue(playersAtom);
   const myIndex = useAtomValue(myPlayerIndexAtom);
 
+  console.log("PhaseRouter", { phase, mode, players, myIndex });
+
   const needsDevicePass = mode === "local" && myIndex !== null;
   const currentPlayerName = myIndex !== null ? players[myIndex]?.name : "";
 

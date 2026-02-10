@@ -27,6 +27,14 @@ export const gameBootstrapAtom = atom(null, (get, set) => {
   const mode = get(gameModeAtom);
   const roomId = get(roomIdAtom);
 
+  // Skip bootstrap if mode not yet selected
+  if (!mode) {
+    console.log("[gameBootstrapAtom] skipping bootstrap, no mode selected");
+    return;
+  }
+
+  console.log("[gameBootstrapAtom] bootstrapping", { mode, roomId });
+
   let authority: GameAuthority;
   let drawSync: DrawSync;
 
@@ -49,11 +57,9 @@ export const gameBootstrapAtom = atom(null, (get, set) => {
     drawSync,
     dispatch: (event) => authority.dispatch(event),
   });
-});
 
-gameBootstrapAtom.onMount = (setAtom) => {
-  setAtom();
-};
+  console.log("[gameBootstrapAtom] services ready");
+});
 
 export const gameSubscriptionsAtom = atom(null);
 
@@ -61,13 +67,21 @@ gameSubscriptionsAtom.onMount = () => {
   const store = getDefaultStore();
   let cleanup: (() => void) | null = null;
 
+  console.log("[gameSubscriptionsAtom] mount");
+
   const setupSubscriptions = (services: GameServices | null) => {
     if (!services || cleanup) return;
+
+    console.log("[gameSubscriptionsAtom] setup subscriptions");
 
     store.set(gameSnapshotAtom, services.authority.getSnapshot());
 
     let lastRound = -1;
     const unsubGame = services.authority.subscribe((snapshot) => {
+      console.log("[gameSubscriptionsAtom] snapshot update", {
+        phase: snapshot.state,
+        round: snapshot.context.round,
+      });
       store.set(gameSnapshotAtom, snapshot);
 
       if (snapshot.context.round !== lastRound) {
@@ -78,6 +92,7 @@ gameSubscriptionsAtom.onMount = () => {
     });
 
     const unsubDraw = services.drawSync.onStroke(() => {
+      console.log("[gameSubscriptionsAtom] stroke update");
       store.set(strokesAtom, services.drawSync.getStrokes());
     });
 
@@ -90,10 +105,12 @@ gameSubscriptionsAtom.onMount = () => {
 
   setupSubscriptions(store.get(gameServicesAtom));
   const unsubServices = store.sub(gameServicesAtom, () => {
+    console.log("[gameSubscriptionsAtom] services changed");
     setupSubscriptions(store.get(gameServicesAtom));
   });
 
   return () => {
+    console.log("[gameSubscriptionsAtom] unmount");
     if (cleanup) cleanup();
     unsubServices();
   };

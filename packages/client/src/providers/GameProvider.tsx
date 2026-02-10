@@ -1,12 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import type { ReactNode } from "react";
-import { useAtomValue } from "jotai";
+import { useEffect, type ReactNode } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   gameBootstrapAtom,
   gameServicesAtom,
   gameSubscriptionsAtom,
   type GameServices,
 } from "../atoms/gameServiceAtoms";
+import { gameModeAtom } from "../atoms/modeAtoms";
 
 export function useGame(): GameServices {
   const services = useAtomValue(gameServicesAtom);
@@ -15,7 +16,16 @@ export function useGame(): GameServices {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  useAtomValue(gameBootstrapAtom);
+  const bootstrap = useSetAtom(gameBootstrapAtom);
+  const mode = useAtomValue(gameModeAtom);
+  
+  useEffect(() => {
+    // Only bootstrap once mode is selected
+    if (mode) {
+      bootstrap();
+    }
+  }, [mode, bootstrap]);
+  
   useAtomValue(gameSubscriptionsAtom);
   return children;
 }
