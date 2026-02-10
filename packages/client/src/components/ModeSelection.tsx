@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
 import { generateRoomId, getRoomIdFromUrl, setRoomIdInUrl } from "../utils/roomId";
@@ -5,6 +6,16 @@ import { generateRoomId, getRoomIdFromUrl, setRoomIdInUrl } from "../utils/roomI
 export function ModeSelection() {
   const setMode = useSetAtom(gameModeAtom);
   const setRoomId = useSetAtom(roomIdAtom);
+
+  // Auto-join if room ID in URL
+  useEffect(() => {
+    const roomId = getRoomIdFromUrl();
+    if (roomId) {
+      console.log("[ModeSelection] auto-joining room", roomId);
+      setRoomId(roomId);
+      setMode("remote");
+    }
+  }, [setMode, setRoomId]);
 
   const handleLocalMode = () => {
     setMode("local");
