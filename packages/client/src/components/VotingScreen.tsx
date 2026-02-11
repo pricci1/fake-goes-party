@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
+import {
+  gameSnapshotAtom,
+  myPlayerIndicesAtom,
+  isMultiSeatAtom,
+  actingPlayerIndexAtom,
+} from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
@@ -10,6 +15,7 @@ export function VotingScreen() {
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [currentStep, setCurrentStep] = useState(0);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const actingPlayerIndex = useAtomValue(actingPlayerIndexAtom);
 
   if (!snapshot) return null;
 
@@ -59,14 +65,23 @@ export function VotingScreen() {
     <DevicePassGuard playerName={voter.name} key={voterPlayerIndex} canAct={true} isMultiSeat={isMultiSeat}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-2xl font-bold">Who is the Fake Artist?</h2>
-        <p className="text-gray-500">{voter.name}, cast your vote:</p>
+        <p className="text-gray-500">
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+            {voter.name}
+          </span>
+          , cast your vote:
+        </p>
 
         <div className="flex flex-col gap-2 w-full max-w-sm">
           {candidates.map(({ index, player }) => (
             <button
               key={index}
               onClick={() => handleVote(index)}
-              className="border rounded px-4 py-3 text-left hover:bg-gray-100"
+              className={`border rounded px-4 py-3 text-left transition ${
+                index === actingPlayerIndex
+                  ? "border-blue-200 bg-blue-50 font-semibold text-blue-800"
+                  : "hover:bg-gray-100"
+              }`}
             >
               {player.name}
             </button>

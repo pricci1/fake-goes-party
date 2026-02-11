@@ -39,6 +39,7 @@ interface DrawingCanvasInnerProps {
   drawRound: 1 | 2;
   playerName: string;
   canDraw: boolean;
+  emphasizeTurn: boolean;
 }
 
 function DrawingCanvasInner({
@@ -47,6 +48,7 @@ function DrawingCanvasInner({
   drawRound,
   playerName,
   canDraw,
+  emphasizeTurn,
 }: DrawingCanvasInnerProps) {
   const strokes = useAtomValue(strokesAtom);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,7 +94,12 @@ function DrawingCanvasInner({
   return (
     <div className="flex flex-col items-center min-h-screen p-4 gap-4">
       <div className="text-center">
-        <h2 className="text-xl font-bold">{playerName}'s turn</h2>
+        <h2 className="text-xl font-bold">
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-700">
+            {playerName}
+          </span>
+          {" "}is up
+        </h2>
         <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
       </div>
 
@@ -100,8 +107,12 @@ function DrawingCanvasInner({
         ref={canvasRef}
         width={400}
         height={400}
-        className={`border-2 border-gray-300 rounded bg-white touch-none ${
+        className={`rounded bg-white touch-none ${
           canDraw ? "" : "opacity-80"
+        } ${
+          emphasizeTurn
+            ? "border-4 border-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]"
+            : "border-2 border-gray-300"
         }`}
         onPointerDown={(e) => {
           if (!canDraw) return;
@@ -157,6 +168,7 @@ export function DrawingCanvas() {
       drawRound={drawRound}
       playerName={actingPlayerName ?? currentDrawer?.name ?? "Player"}
       canDraw={canAct}
+      emphasizeTurn={canAct && !isMultiSeat}
     />
   );
 

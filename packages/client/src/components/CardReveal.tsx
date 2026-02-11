@@ -67,7 +67,13 @@ export function CardReveal() {
   return (
     <DevicePassGuard playerName={player.name} key={currentStep} canAct={true} isMultiSeat={isMultiSeat}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
-        <h2 className="text-xl">Your card, {player.name}:</h2>
+        <h2 className="text-xl">
+          Your card,{" "}
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-700">
+            {player.name}
+          </span>
+          :
+        </h2>
 
         {!cardVisible ? (
           <button
@@ -78,7 +84,13 @@ export function CardReveal() {
           </button>
         ) : (
           <div className="border-2 rounded-lg p-6 text-center space-y-2">
-            <p className="text-lg font-bold">{cardContent.role}</p>
+            <p
+              className={`text-lg font-bold ${
+                isFake ? "text-rose-700" : isQM ? "text-blue-700" : "text-emerald-700"
+              }`}
+            >
+              {cardContent.role}
+            </p>
             <p className="text-md">{cardContent.detail}</p>
           </div>
         )}

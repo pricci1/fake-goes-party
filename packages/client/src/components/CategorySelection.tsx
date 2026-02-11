@@ -37,7 +37,12 @@ export function CategorySelection() {
 
   const content = (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
-      <h2 className="text-2xl font-bold">{qmName} is the Question Master</h2>
+      <h2 className="text-2xl font-bold">
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-700">
+          {qmName}
+        </span>
+        {" "}is the Question Master
+      </h2>
       <p className="text-gray-500">Pick a category and a secret title for everyone to draw.</p>
       <p className="text-sm text-gray-400">Don't let anyone else see the title!</p>
 
@@ -71,7 +76,12 @@ export function CategorySelection() {
   if (!canAct) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-        <h2 className="text-2xl font-bold">Waiting for {actingPlayerName ?? qmName}</h2>
+        <h2 className="text-2xl font-bold">
+          Waiting for{" "}
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-700">
+            {actingPlayerName ?? qmName}
+          </span>
+        </h2>
         <p className="text-gray-500">The Question Master is choosing the category and title.</p>
         <p className="text-sm text-gray-400">Hold tight — don't peek!</p>
       </div>

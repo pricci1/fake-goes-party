@@ -1,10 +1,12 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 
 export function Scoring() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
 
   if (!snapshot) return null;
 
@@ -15,18 +17,35 @@ export function Scoring() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
       <h2 className="text-2xl font-bold">Round Over</h2>
 
-      <div className="text-center space-y-1">
-        <p>The Fake Artist was: <strong>{fakeName}</strong></p>
-        <p>Category: <strong>{category}</strong> — Title: <strong>{title}</strong></p>
+      <div className="text-center space-y-2">
+        <p>
+          The Fake Artist was:{" "}
+          <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-sm font-semibold text-rose-700">
+            {fakeName}
+          </span>
+        </p>
+        <p>
+          Category:{" "}
+          <strong className="text-slate-700">{category}</strong> — Title:{" "}
+          <strong className="text-slate-700">{title}</strong>
+        </p>
         {fakeCaught === true && (
-          <p>
+          <p
+            className={
+              correctGuess
+                ? "rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-700"
+                : "rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-amber-700"
+            }
+          >
             {correctGuess
               ? `${fakeName} guessed correctly! Fake Artist and QM score 2 points.`
               : `${fakeName} guessed wrong! Artists score 1 point each.`}
           </p>
         )}
         {fakeCaught === false && (
-          <p>{fakeName} wasn't caught! Fake Artist and QM score 2 points.</p>
+          <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-rose-700">
+            {fakeName} wasn't caught! Fake Artist and QM score 2 points.
+          </p>
         )}
         {scoreMessage && <p className="text-sm text-gray-500">{scoreMessage}</p>}
       </div>
@@ -35,8 +54,20 @@ export function Scoring() {
         <h3 className="font-bold mb-2">Scores</h3>
         <ul className="space-y-1">
           {players.map((p, i) => (
-            <li key={p.id} className="flex justify-between border-b py-1">
-              <span>{p.name}</span>
+            <li
+              key={p.id}
+              className={`flex justify-between border-b py-1 ${
+                myIndices.includes(i) ? "text-slate-900" : "text-slate-600"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span className={myIndices.includes(i) ? "font-semibold" : ""}>{p.name}</span>
+                {myIndices.includes(i) && (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                    {isMultiSeat ? "This device" : "You"}
+                  </span>
+                )}
+              </span>
               <span className="font-mono">{scores[i] ?? 0}</span>
             </li>
           ))}

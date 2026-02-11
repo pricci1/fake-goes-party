@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { playersAtom, registerPlayerIdAtom } from "../atoms";
+import {
+  playersAtom,
+  registerPlayerIdAtom,
+  myPlayerIndicesAtom,
+  isMultiSeatAtom,
+} from "../atoms";
 import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
@@ -8,6 +13,8 @@ import { MIN_PLAYERS } from "@fake-goes-party/shared";
 export function Lobby() {
   const { dispatch } = useGame();
   const players = useAtomValue(playersAtom);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
@@ -84,8 +91,22 @@ export function Lobby() {
 
       <ul className="w-full max-w-sm space-y-2">
         {players.map((p, i) => (
-          <li key={p.id} className="flex justify-between items-center border rounded px-3 py-2">
-            <span>{p.name}</span>
+          <li
+            key={p.id}
+            className={`flex justify-between items-center border rounded px-3 py-2 ${
+              myIndices.includes(i) ? "border-blue-200 bg-blue-50" : ""
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <span className={myIndices.includes(i) ? "font-semibold text-blue-900" : ""}>
+                {p.name}
+              </span>
+              {myIndices.includes(i) && (
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                  {isMultiSeat ? "This device" : "You"}
+                </span>
+              )}
+            </span>
             <button
               onClick={() => removePlayer(i)}
               className="text-red-500 text-sm"
