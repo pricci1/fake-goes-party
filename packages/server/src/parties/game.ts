@@ -1,5 +1,5 @@
 import type * as Party from "partykit/server";
-import { interpret } from "robot3";
+import { interpret, type Service } from "robot3";
 import {
   GameEventSchema,
   createGameMachine,
@@ -9,8 +9,11 @@ import {
 } from "@fake-goes-party/shared";
 import type { ServerMessage, ClientMessage } from "./types.ts";
 
+type GameMachine = ReturnType<typeof createGameMachine>["machine"];
+type GameService = Service<GameMachine>;
+
 export default class GameParty implements Party.Server {
-  private service: ReturnType<typeof interpret> | null = null;
+  private service: GameService | null = null;
 
   constructor(readonly room: Party.Room) {}
 
