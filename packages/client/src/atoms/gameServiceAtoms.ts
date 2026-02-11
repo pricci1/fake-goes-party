@@ -19,21 +19,10 @@ export interface GameServices {
   dispatch: (event: GameEvent) => void;
 }
 
-export const gameServicesAtom = atom<GameServices | null>(null);
-
-export const gameBootstrapAtom = atom(null, (get, set) => {
-  if (get(gameServicesAtom)) return;
-
+export const gameServicesAtom = atom<GameServices | null>((get) => {
   const mode = get(gameModeAtom);
   const roomId = get(roomIdAtom);
-
-  // Skip bootstrap if mode not yet selected
-  if (!mode) {
-    console.log("[gameBootstrapAtom] skipping bootstrap, no mode selected");
-    return;
-  }
-
-  console.log("[gameBootstrapAtom] bootstrapping", { mode, roomId });
+  if (!mode) return null;
 
   let authority: GameAuthority;
   let drawSync: DrawSync;
@@ -52,13 +41,11 @@ export const gameBootstrapAtom = atom(null, (get, set) => {
     throw new Error(`Unknown game mode: ${mode}`);
   }
 
-  set(gameServicesAtom, {
+  return {
     authority,
     drawSync,
-    dispatch: (event) => authority.dispatch(event),
-  });
-
-  console.log("[gameBootstrapAtom] services ready");
+    dispatch: (event: GameEvent) => authority.dispatch(event),
+  };
 });
 
 export const gameSubscriptionsAtom = atom(null);
