@@ -6,7 +6,8 @@
   "module": "src/index.ts",
   "scripts": {
     "dev": "partykit dev",
-    "deploy": "partykit deploy"
+    "deploy": "partykit deploy",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fake-goes-party/shared": "workspace:*",

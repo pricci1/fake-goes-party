@@ -2,6 +2,9 @@
   "name": "fake-goes-party",
   "private": true,
   "type": "module",
+  "scripts": {
+    "typecheck": "bun --filter '*' typecheck"
+  },
   "workspaces": ["packages/*"],
   "devDependencies": {
     "@types/bun": "latest"

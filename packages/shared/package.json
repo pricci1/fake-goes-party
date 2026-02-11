@@ -11,6 +11,9 @@
       "types": "./src/index.ts"
     }
   },
+  "scripts": {
+    "typecheck": "tsc -b"
+  },
   "dependencies": {
     "robot3": "^1.2.0",
     "zod": "^4.3.6"
