@@ -1,7 +1,6 @@
-import { useEffect } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { currentPhaseAtom, myPlayerIndicesAtom } from "../atoms";
-import { gameModeAtom, isSpectatorAtom } from "../atoms/modeAtoms";
+import { useAtomValue } from "jotai";
+import { currentPhaseAtom } from "../atoms";
+import { isSpectatorAtom } from "../atoms/modeAtoms";
 import { Lobby } from "./Lobby";
 import { CategorySelection } from "./CategorySelection";
 import { CardReveal } from "./CardReveal";
@@ -25,15 +24,6 @@ function Loading() {
 export function PhaseRouter() {
   const phase = useAtomValue(currentPhaseAtom);
   const isSpectator = useAtomValue(isSpectatorAtom);
-  const myIndices = useAtomValue(myPlayerIndicesAtom);
-  const mode = useAtomValue(gameModeAtom);
-  const setSpectator = useSetAtom(isSpectatorAtom);
-
-  useEffect(() => {
-    if (mode === "remote" && myIndices.length === 0 && phase && phase !== "lobby") {
-      setSpectator(true);
-    }
-  }, [mode, myIndices.length, phase, setSpectator]);
 
   if (isSpectator) {
     return <SpectatorRouter phase={phase} />;
