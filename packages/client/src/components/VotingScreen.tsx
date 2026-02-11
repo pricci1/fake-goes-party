@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
@@ -10,6 +10,7 @@ export function VotingScreen() {
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [votes, setVotes] = useState<Record<string, number>>({});
   const [currentStep, setCurrentStep] = useState(0);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
 
   if (!snapshot) return null;
 
@@ -45,7 +46,7 @@ export function VotingScreen() {
   };
 
   return (
-    <DevicePassGuard playerName={voter.name} key={voterPlayerIndex}>
+    <DevicePassGuard playerName={voter.name} key={voterPlayerIndex} canAct={true} isMultiSeat={isMultiSeat}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-2xl font-bold">Who is the Fake Artist?</h2>
         <p className="text-gray-500">{voter.name}, cast your vote:</p>

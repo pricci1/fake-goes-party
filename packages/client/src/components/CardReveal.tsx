@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
+import {
+  gameSnapshotAtom,
+  myPlayerIndicesAtom,
+  isMultiSeatAtom,
+} from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
@@ -10,6 +14,7 @@ export function CardReveal() {
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [currentStep, setCurrentStep] = useState(0);
   const [cardVisible, setCardVisible] = useState(false);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
 
   if (!snapshot) return null;
 
@@ -46,7 +51,7 @@ export function CardReveal() {
   };
 
   return (
-    <DevicePassGuard playerName={player.name} key={currentStep}>
+    <DevicePassGuard playerName={player.name} key={currentStep} canAct={true} isMultiSeat={isMultiSeat}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-xl">Your card, {player.name}:</h2>
 

@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
-import { useAtomValue } from "jotai";
-import { myPlayerIndicesAtom } from "../atoms";
 
 interface Props {
   playerName: string;
   children: React.ReactNode;
+  canAct: boolean;
+  isMultiSeat: boolean;
 }
 
-export function DevicePassGuard({ playerName, children }: Props) {
-  const myIndices = useAtomValue(myPlayerIndicesAtom);
+export function DevicePassGuard({ playerName, children, canAct, isMultiSeat }: Props) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setReady(false);
   }, [playerName]);
 
-  const isMultiSeat = myIndices.length > 1;
+  const isReady = canAct ? ready : false;
+  const shouldGate = isMultiSeat && canAct;
 
-  if (!isMultiSeat || ready) {
+  if (!shouldGate || isReady) {
     return <>{children}</>;
   }
 

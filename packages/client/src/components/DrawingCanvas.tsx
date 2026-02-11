@@ -1,6 +1,13 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, strokesAtom, myPlayerIndicesAtom } from "../atoms";
+import {
+  gameSnapshotAtom,
+  strokesAtom,
+  canActAtom,
+  actingPlayerNameAtom,
+  isMultiSeatAtom,
+  actingPlayerIndexAtom,
+} from "../atoms";
 import { useDrawing } from "../hooks/useDrawing";
 import { AVAILABLE_COLORS } from "@fake-goes-party/shared";
 import type { Point } from "@fake-goes-party/shared";
@@ -129,16 +136,18 @@ function DrawingCanvasInner({
 
 export function DrawingCanvas() {
   const snapshot = useAtomValue(gameSnapshotAtom);
-  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const canAct = useAtomValue(canActAtom);
+  const actingPlayerName = useAtomValue(actingPlayerNameAtom);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const actingPlayerIndex = useAtomValue(actingPlayerIndexAtom);
 
   const ctx = snapshot?.context;
   if (!snapshot || !ctx) return null;
 
-  const currentDrawerPlayerIndex = ctx.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
+  const currentDrawerPlayerIndex = actingPlayerIndex ?? ctx.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
   const currentColor = getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length);
   const drawRound = (ctx.drawRound ?? 1) as 1 | 2;
   const currentDrawer = ctx.players[currentDrawerPlayerIndex];
-  const isMyTurn = myIndices.includes(currentDrawerPlayerIndex);
 
   const canvas = (
     <DrawingCanvasInner
@@ -146,17 +155,22 @@ export function DrawingCanvas() {
       playerIndex={currentDrawerPlayerIndex}
       color={currentColor}
       drawRound={drawRound}
-      playerName={currentDrawer?.name ?? "Player"}
-      canDraw={isMyTurn}
+      playerName={actingPlayerName ?? currentDrawer?.name ?? "Player"}
+      canDraw={canAct}
     />
   );
 
-  if (!isMyTurn) {
+  if (!canAct) {
     return canvas;
   }
 
   return (
-    <DevicePassGuard playerName={currentDrawer?.name ?? "Player"} key={`${ctx.currentDrawerIdx}-${drawRound}`}>
+    <DevicePassGuard
+      playerName={actingPlayerName ?? currentDrawer?.name ?? "Player"}
+      canAct={canAct}
+      isMultiSeat={isMultiSeat}
+      key={`${ctx.currentDrawerIdx}-${drawRound}`}
+    >
       {canvas}
     </DevicePassGuard>
   );

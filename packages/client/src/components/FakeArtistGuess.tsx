@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
+import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function FakeArtistGuess() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
-  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const canAct = useAtomValue(canActAtom);
+  const actingPlayerName = useAtomValue(actingPlayerNameAtom);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
   const [guess, setGuess] = useState("");
 
   if (!snapshot) return null;
 
   const { fakeArtistIndex, players, category } = snapshot.context;
   const fakeName = players[fakeArtistIndex ?? 0]?.name ?? "???";
-  const isFakeOnThisDevice = fakeArtistIndex !== null && myIndices.includes(fakeArtistIndex);
 
   const content = (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
@@ -43,12 +44,12 @@ export function FakeArtistGuess() {
     </div>
   );
 
-  if (!isFakeOnThisDevice) {
+  if (!canAct) {
     return content;
   }
 
   return (
-    <DevicePassGuard playerName={fakeName}>
+    <DevicePassGuard playerName={actingPlayerName ?? fakeName} canAct={canAct} isMultiSeat={isMultiSeat}>
       {content}
     </DevicePassGuard>
   );

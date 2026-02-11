@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
+import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function CategorySelection() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
-  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const canAct = useAtomValue(canActAtom);
+  const actingPlayerName = useAtomValue(actingPlayerNameAtom);
+  const isMultiSeat = useAtomValue(isMultiSeatAtom);
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
 
@@ -16,7 +18,6 @@ export function CategorySelection() {
   const qmIndex = snapshot.context.qmIndex;
   const qmName = snapshot.context.players[qmIndex]?.name ?? "QM";
   const playerCount = snapshot.context.players.length;
-  const isQMOnDevice = myIndices.includes(qmIndex);
 
   const submit = () => {
     if (!category.trim() || !title.trim()) return;
@@ -67,10 +68,10 @@ export function CategorySelection() {
     </div>
   );
 
-  if (!isQMOnDevice) {
+  if (!canAct) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-        <h2 className="text-2xl font-bold">Waiting for {qmName}</h2>
+        <h2 className="text-2xl font-bold">Waiting for {actingPlayerName ?? qmName}</h2>
         <p className="text-gray-500">The Question Master is choosing the category and title.</p>
         <p className="text-sm text-gray-400">Hold tight — don't peek!</p>
       </div>
@@ -78,7 +79,7 @@ export function CategorySelection() {
   }
 
   return (
-    <DevicePassGuard playerName={qmName}>
+    <DevicePassGuard playerName={actingPlayerName ?? qmName} canAct={canAct} isMultiSeat={isMultiSeat}>
       {content}
     </DevicePassGuard>
   );
