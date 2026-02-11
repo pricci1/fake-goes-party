@@ -6,7 +6,7 @@ import {
   myPlayerIndicesAtom,
   isMultiSeatAtom,
 } from "../atoms";
-import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
+import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
 
@@ -18,6 +18,7 @@ export function Lobby() {
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
+  const setSpectator = useSetAtom(isSpectatorAtom);
   const [name, setName] = useState("");
 
   const addPlayer = () => {
@@ -66,6 +67,14 @@ export function Lobby() {
             className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 w-full"
           >
             Copy Invite Link
+          </button>
+          <button
+            onClick={() => setSpectator(true)}
+            disabled={myIndices.length > 0}
+            title={myIndices.length > 0 ? "You already joined as a player on this device" : undefined}
+            className="mt-2 bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-200 w-full border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            👀 Join as Spectator
           </button>
         </div>
       )}
