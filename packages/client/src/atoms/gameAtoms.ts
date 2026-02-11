@@ -1,11 +1,9 @@
 import { atom } from "jotai";
-import type { GameSnapshot } from "@fake-goes-party/shared";
+import { myPlayerIndexAtom } from "./playerIdentityAtoms";
+import { gameSnapshotAtom } from "./snapshotAtom";
 
-// Primitive atoms — set by authority subscription
-export const gameSnapshotAtom = atom<GameSnapshot | null>(null);
-export const myPlayerIndexAtom = atom<number | null>(null);
+export { gameSnapshotAtom };
 
-// Derived atoms — pure selectors
 export const currentPhaseAtom = atom((get) => get(gameSnapshotAtom)?.state ?? null);
 
 export const playersAtom = atom((get) => get(gameSnapshotAtom)?.context.players ?? []);

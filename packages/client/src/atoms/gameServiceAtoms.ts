@@ -9,7 +9,7 @@ import {
   type DrawSync,
   type GameEvent,
 } from "@fake-goes-party/shared";
-import { gameSnapshotAtom } from "./gameAtoms";
+import { gameSnapshotAtom } from "./snapshotAtom";
 import { strokesAtom } from "./drawAtoms";
 import { gameModeAtom, roomIdAtom } from "./modeAtoms";
 
@@ -120,7 +120,3 @@ gameSubscriptionsAtom.onMount = () => {
     unsubServices();
   };
 };
-
-// TODO: Implement proper player identity tracking for remote mode.
-// Currently, myPlayerIndexAtom must be set manually when a player joins.
-// Consider: Store player ID in localStorage and sync with server.
