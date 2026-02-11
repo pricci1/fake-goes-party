@@ -144,7 +144,7 @@ export function DrawingCanvas() {
   const ctx = snapshot?.context;
   if (!snapshot || !ctx) return null;
 
-  const currentDrawerPlayerIndex = actingPlayerIndex ?? ctx.drawOrder?.[ctx.currentDrawerIdx] ?? 0;
+  const currentDrawerPlayerIndex = actingPlayerIndex ?? 0;
   const currentColor = getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length);
   const drawRound = (ctx.drawRound ?? 1) as 1 | 2;
   const currentDrawer = ctx.players[currentDrawerPlayerIndex];
