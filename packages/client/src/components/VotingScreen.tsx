@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function VotingScreen() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [votes, setVotes] = useState<Record<string, number>>({});
-  const [currentVoterIdx, setCurrentVoterIdx] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
 
   if (!snapshot) return null;
 
   const { players, drawOrder } = snapshot.context;
 
-  // Voters are all artists (everyone except QM)
   const voterIndices = drawOrder ?? [];
+  const myVoterIndices = voterIndices.filter((idx) => myIndices.includes(idx));
 
-  if (currentVoterIdx >= voterIndices.length) {
-    // All votes collected — submit
+  if (currentStep >= myVoterIndices.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-2xl font-bold">All votes in!</h2>
@@ -32,17 +32,16 @@ export function VotingScreen() {
     );
   }
 
-  const voterPlayerIndex = voterIndices[currentVoterIdx]!;
+  const voterPlayerIndex = myVoterIndices[currentStep]!;
   const voter = players[voterPlayerIndex]!;
 
-  // Candidates: all artists except the current voter
   const candidates = voterIndices
     .filter((idx) => idx !== voterPlayerIndex)
     .map((idx) => ({ index: idx, player: players[idx]! }));
 
   const handleVote = (votedForIndex: number) => {
     setVotes((prev) => ({ ...prev, [String(voterPlayerIndex)]: votedForIndex }));
-    setCurrentVoterIdx((prev) => prev + 1);
+    setCurrentStep((prev) => prev + 1);
   };
 
   return (

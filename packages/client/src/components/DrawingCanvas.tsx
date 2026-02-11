@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, strokesAtom } from "../atoms";
+import { gameSnapshotAtom, strokesAtom, myPlayerIndicesAtom } from "../atoms";
 import { useDrawing } from "../hooks/useDrawing";
 import { AVAILABLE_COLORS } from "@fake-goes-party/shared";
 import type { Point } from "@fake-goes-party/shared";
@@ -31,9 +31,16 @@ interface DrawingCanvasInnerProps {
   color: string;
   drawRound: 1 | 2;
   playerName: string;
+  canDraw: boolean;
 }
 
-function DrawingCanvasInner({ playerIndex, color, drawRound, playerName }: DrawingCanvasInnerProps) {
+function DrawingCanvasInner({
+  playerIndex,
+  color,
+  drawRound,
+  playerName,
+  canDraw,
+}: DrawingCanvasInnerProps) {
   const strokes = useAtomValue(strokesAtom);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -41,7 +48,7 @@ function DrawingCanvasInner({ playerIndex, color, drawRound, playerName }: Drawi
     playerIndex,
     color,
     drawRound,
-    enabled: true,
+    enabled: canDraw,
   });
 
   const renderCanvas = useCallback(() => {
@@ -86,18 +93,32 @@ function DrawingCanvasInner({ playerIndex, color, drawRound, playerName }: Drawi
         ref={canvasRef}
         width={400}
         height={400}
-        className="border-2 border-gray-300 rounded bg-white touch-none"
+        className={`border-2 border-gray-300 rounded bg-white touch-none ${
+          canDraw ? "" : "opacity-80"
+        }`}
         onPointerDown={(e) => {
+          if (!canDraw) return;
           const pt = getCanvasPoint(e);
           drawing.handlePointerDown(pt.x, pt.y, e.pressure);
         }}
         onPointerMove={(e) => {
+          if (!canDraw) return;
           const pt = getCanvasPoint(e);
           drawing.handlePointerMove(pt.x, pt.y, e.pressure);
         }}
-        onPointerUp={() => drawing.handlePointerUp()}
-        onPointerLeave={() => drawing.handlePointerUp()}
+        onPointerUp={() => {
+          if (!canDraw) return;
+          drawing.handlePointerUp();
+        }}
+        onPointerLeave={() => {
+          if (!canDraw) return;
+          drawing.handlePointerUp();
+        }}
       />
+
+      {!canDraw && (
+        <p className="text-sm text-gray-400">Waiting for {playerName} to finish drawing.</p>
+      )}
 
       {drawing.strokeDone && (
         <p className="text-green-600 font-medium">Stroke submitted! Pass the device to the next player.</p>
@@ -108,6 +129,7 @@ function DrawingCanvasInner({ playerIndex, color, drawRound, playerName }: Drawi
 
 export function DrawingCanvas() {
   const snapshot = useAtomValue(gameSnapshotAtom);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
 
   const ctx = snapshot?.context;
   if (!snapshot || !ctx) return null;
@@ -116,16 +138,26 @@ export function DrawingCanvas() {
   const currentColor = getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length);
   const drawRound = (ctx.drawRound ?? 1) as 1 | 2;
   const currentDrawer = ctx.players[currentDrawerPlayerIndex];
+  const isMyTurn = myIndices.includes(currentDrawerPlayerIndex);
+
+  const canvas = (
+    <DrawingCanvasInner
+      key={`${ctx.currentDrawerIdx}-${drawRound}`}
+      playerIndex={currentDrawerPlayerIndex}
+      color={currentColor}
+      drawRound={drawRound}
+      playerName={currentDrawer?.name ?? "Player"}
+      canDraw={isMyTurn}
+    />
+  );
+
+  if (!isMyTurn) {
+    return canvas;
+  }
 
   return (
     <DevicePassGuard playerName={currentDrawer?.name ?? "Player"} key={`${ctx.currentDrawerIdx}-${drawRound}`}>
-      <DrawingCanvasInner
-        key={`${ctx.currentDrawerIdx}-${drawRound}`}
-        playerIndex={currentDrawerPlayerIndex}
-        color={currentColor}
-        drawRound={drawRound}
-        playerName={currentDrawer?.name ?? "Player"}
-      />
+      {canvas}
     </DevicePassGuard>
   );
 }

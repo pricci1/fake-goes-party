@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
+import { DevicePassGuard } from "./DevicePassGuard";
 
 export function CategorySelection() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
 
@@ -14,6 +16,7 @@ export function CategorySelection() {
   const qmIndex = snapshot.context.qmIndex;
   const qmName = snapshot.context.players[qmIndex]?.name ?? "QM";
   const playerCount = snapshot.context.players.length;
+  const isQMOnDevice = myIndices.includes(qmIndex);
 
   const submit = () => {
     if (!category.trim() || !title.trim()) return;
@@ -31,7 +34,7 @@ export function CategorySelection() {
     });
   };
 
-  return (
+  const content = (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
       <h2 className="text-2xl font-bold">{qmName} is the Question Master</h2>
       <p className="text-gray-500">Pick a category and a secret title for everyone to draw.</p>
@@ -62,5 +65,21 @@ export function CategorySelection() {
         </button>
       </div>
     </div>
+  );
+
+  if (!isQMOnDevice) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+        <h2 className="text-2xl font-bold">Waiting for {qmName}</h2>
+        <p className="text-gray-500">The Question Master is choosing the category and title.</p>
+        <p className="text-sm text-gray-400">Hold tight — don't peek!</p>
+      </div>
+    );
+  }
+
+  return (
+    <DevicePassGuard playerName={qmName}>
+      {content}
+    </DevicePassGuard>
   );
 }

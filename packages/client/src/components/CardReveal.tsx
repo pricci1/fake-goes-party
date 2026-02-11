@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function CardReveal() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
-  const [currentViewerIdx, setCurrentViewerIdx] = useState(0);
+  const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const [currentStep, setCurrentStep] = useState(0);
   const [cardVisible, setCardVisible] = useState(false);
 
   if (!snapshot) return null;
 
   const { players, qmIndex, fakeArtistIndex, category, title } = snapshot.context;
 
-  if (currentViewerIdx >= players.length) {
+  if (currentStep >= myIndices.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-2xl font-bold">All cards revealed!</h2>
@@ -28,9 +29,10 @@ export function CardReveal() {
     );
   }
 
-  const player = players[currentViewerIdx];
-  const isQM = currentViewerIdx === qmIndex;
-  const isFake = currentViewerIdx === fakeArtistIndex;
+  const playerIndex = myIndices[currentStep]!;
+  const player = players[playerIndex]!;
+  const isQM = playerIndex === qmIndex;
+  const isFake = playerIndex === fakeArtistIndex;
 
   const cardContent = isQM
     ? { role: "Question Master", detail: `Category: ${category} | Title: ${title}` }
@@ -40,11 +42,11 @@ export function CardReveal() {
 
   const handleNext = () => {
     setCardVisible(false);
-    setCurrentViewerIdx((prev) => prev + 1);
+    setCurrentStep((prev) => prev + 1);
   };
 
   return (
-    <DevicePassGuard playerName={player.name} key={currentViewerIdx}>
+    <DevicePassGuard playerName={player.name} key={currentStep}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <h2 className="text-xl">Your card, {player.name}:</h2>
 
