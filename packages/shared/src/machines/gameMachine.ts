@@ -11,6 +11,7 @@ import { MIN_PLAYERS, WIN_THRESHOLD } from "../constants/index.ts";
 import {
   getQmIndex,
   getArtistIndices,
+  getArtistIndicesSet,
   isFakeCaught,
   findWinners,
 } from "../logic/index.ts";
@@ -39,6 +40,7 @@ export function createGameMachine(initialContext: GameContext) {
               fakeArtistIndex: null,
               category: "",
               title: "",
+              cardsRevealed: {},
               votes: {},
               drawRound: 0,
               cards: [],
@@ -71,6 +73,7 @@ export function createGameMachine(initialContext: GameContext) {
               category: ev.category,
               title: ev.title,
               fakeArtistIndex: ev.fakeArtistIndex,
+              cardsRevealed: {},
               cards,
             };
           })
@@ -78,7 +81,57 @@ export function createGameMachine(initialContext: GameContext) {
       ),
 
       cardDistribution: state(
-        transition("CARDS_REVEALED", "colorSelection")
+        transition(
+          "CARDS_REVEALED",
+          "colorSelection",
+          guard((ctx: GameContext, ev: any) => {
+            const artists = getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            );
+            if (!artists.has(ev.playerIndex)) {
+              return false;
+            }
+            const revealed = {
+              ...ctx.cardsRevealed,
+              [String(ev.playerIndex)]: true,
+            };
+            for (const index of artists) {
+              if (revealed[String(index)] !== true) {
+                return false;
+              }
+            }
+            return true;
+          }),
+          reduce((ctx: GameContext, ev: any) => ({
+            ...ctx,
+            cardsRevealed: getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            ).has(ev.playerIndex)
+              ? {
+                  ...ctx.cardsRevealed,
+                  [String(ev.playerIndex)]: true,
+                }
+              : ctx.cardsRevealed,
+          }))
+        ),
+        transition(
+          "CARDS_REVEALED",
+          "cardDistribution",
+          reduce((ctx: GameContext, ev: any) => ({
+            ...ctx,
+            cardsRevealed: getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            ).has(ev.playerIndex)
+              ? {
+                  ...ctx.cardsRevealed,
+                  [String(ev.playerIndex)]: true,
+                }
+              : ctx.cardsRevealed,
+          }))
+        )
       ),
 
       colorSelection: state(
@@ -135,9 +188,52 @@ export function createGameMachine(initialContext: GameContext) {
         transition(
           "SUBMIT_VOTES",
           "evaluateVotes",
+          guard((ctx: GameContext, ev: any) => {
+            const artists = getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            );
+            if (!artists.has(ev.voterIndex)) {
+              return false;
+            }
+            const votes = {
+              ...ctx.votes,
+              [String(ev.voterIndex)]: ev.votedForIndex,
+            };
+            for (const index of artists) {
+              if (votes[String(index)] === undefined) {
+                return false;
+              }
+            }
+            return true;
+          }),
           reduce((ctx: GameContext, ev: any) => ({
             ...ctx,
-            votes: ev.votes,
+            votes: getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            ).has(ev.voterIndex)
+              ? {
+                  ...ctx.votes,
+                  [String(ev.voterIndex)]: ev.votedForIndex,
+                }
+              : ctx.votes,
+          }))
+        ),
+        transition(
+          "SUBMIT_VOTES",
+          "voting",
+          reduce((ctx: GameContext, ev: any) => ({
+            ...ctx,
+            votes: getArtistIndicesSet(
+              ctx.players.length,
+              ctx.qmIndex
+            ).has(ev.voterIndex)
+              ? {
+                  ...ctx.votes,
+                  [String(ev.voterIndex)]: ev.votedForIndex,
+                }
+              : ctx.votes,
           }))
         )
       ),

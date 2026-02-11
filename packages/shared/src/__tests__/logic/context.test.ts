@@ -10,6 +10,7 @@ describe("createInitialContext", () => {
     expect(ctx.fakeArtistIndex).toBeNull();
     expect(ctx.category).toBe("");
     expect(ctx.title).toBe("");
+    expect(ctx.cardsRevealed).toEqual({});
     expect(ctx.votes).toEqual({});
     expect(ctx.drawRound).toBe(0);
     expect(ctx.cards).toEqual([]);
@@ -43,6 +44,7 @@ describe("resetRoundContext", () => {
     expect(reset.category).toBe("");
     expect(reset.title).toBe("");
     expect(reset.fakeArtistIndex).toBeNull();
+    expect(reset.cardsRevealed).toEqual({});
     expect(reset.votes).toEqual({});
     expect(reset.fakeCaught).toBeNull();
     expect(reset.fakeGuess).toBe("");

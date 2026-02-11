@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   getArtistIndices,
+  getArtistIndicesSet,
   getQmIndex,
   findWinners,
 } from "../../logic/index.ts";
@@ -27,6 +28,15 @@ describe("getArtistIndices", () => {
   test("returns all indices except QM", () => {
     expect(getArtistIndices(5, 0)).toEqual([1, 2, 3, 4]);
     expect(getArtistIndices(5, 2)).toEqual([0, 1, 3, 4]);
+  });
+
+  test("returns a set of all indices except QM", () => {
+    const result = getArtistIndicesSet(5, 2);
+    expect(result.has(0)).toBe(true);
+    expect(result.has(1)).toBe(true);
+    expect(result.has(2)).toBe(false);
+    expect(result.has(3)).toBe(true);
+    expect(result.has(4)).toBe(true);
   });
 });
 

@@ -43,7 +43,10 @@ describe("GameEventSchema", () => {
   });
 
   test("accepts CARDS_REVEALED", () => {
-    const result = GameEventSchema.safeParse({ type: "CARDS_REVEALED" });
+    const result = GameEventSchema.safeParse({
+      type: "CARDS_REVEALED",
+      playerIndex: 0,
+    });
     expect(result.success).toBe(true);
   });
 
@@ -57,12 +60,21 @@ describe("GameEventSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  test("accepts SUBMIT_VOTES with vote map", () => {
+  test("accepts SUBMIT_VOTES", () => {
     const result = GameEventSchema.safeParse({
       type: "SUBMIT_VOTES",
-      votes: { "0": 2, "1": 2, "3": 1 },
+      voterIndex: 0,
+      votedForIndex: 2,
     });
     expect(result.success).toBe(true);
+  });
+
+  test("rejects SUBMIT_VOTES with legacy vote map", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SUBMIT_VOTES",
+      votes: { "0": 2, "1": 2 },
+    });
+    expect(result.success).toBe(false);
   });
 
   test("accepts GUESS_TITLE", () => {

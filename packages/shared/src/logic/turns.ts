@@ -16,6 +16,13 @@ export function getArtistIndices(
   return artists;
 }
 
+export function getArtistIndicesSet(
+  playerCount: number,
+  qmIndex: number
+): Set<number> {
+  return new Set(getArtistIndices(playerCount, qmIndex));
+}
+
 /**
  * Returns array of winning players. Empty if no one has met the threshold.
  * If multiple players meet threshold, only those tied for the highest score win.

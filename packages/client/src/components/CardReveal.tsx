@@ -18,18 +18,29 @@ export function CardReveal() {
 
   if (!snapshot) return null;
 
-  const { players, qmIndex, fakeArtistIndex, category, title } = snapshot.context;
+  const { players, qmIndex, fakeArtistIndex, category, title, cardsRevealed } =
+    snapshot.context;
 
   if (currentStep >= myIndices.length) {
+    const artistIndices = players
+      .map((_, index) => index)
+      .filter((index) => index !== qmIndex);
+    const allArtistsReady = artistIndices.every(
+      (index) => cardsRevealed[String(index)]
+    );
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
-        <h2 className="text-2xl font-bold">All cards revealed!</h2>
-        <button
-          onClick={() => dispatch({ type: "CARDS_REVEALED" })}
-          className="bg-blue-600 text-white px-6 py-3 rounded text-lg"
-        >
-          Continue
-        </button>
+        {allArtistsReady ? (
+          <>
+            <h2 className="text-2xl font-bold">All cards revealed!</h2>
+            <p className="text-gray-500">Waiting to move to the next phase.</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold">Waiting for others...</h2>
+            <p className="text-gray-500">All artists must reveal their cards.</p>
+          </>
+        )}
       </div>
     );
   }
@@ -46,6 +57,9 @@ export function CardReveal() {
       : { role: "Artist", detail: `Category: ${category} | Title: ${title}` };
 
   const handleNext = () => {
+    if (!isQM) {
+      dispatch({ type: "CARDS_REVEALED", playerIndex });
+    }
     setCardVisible(false);
     setCurrentStep((prev) => prev + 1);
   };

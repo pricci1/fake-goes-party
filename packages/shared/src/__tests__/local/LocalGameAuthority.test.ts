@@ -70,7 +70,9 @@ describe("LocalGameAuthority", () => {
       title: "Cat",
       fakeArtistIndex: 2,
     });
-    auth.dispatch({ type: "CARDS_REVEALED" });
+    auth.dispatch({ type: "CARDS_REVEALED", playerIndex: 1 });
+    auth.dispatch({ type: "CARDS_REVEALED", playerIndex: 2 });
+    auth.dispatch({ type: "CARDS_REVEALED", playerIndex: 3 });
     auth.dispatch({ type: "COLORS_CHOSEN" });
 
     const artistCount = auth.getSnapshot().context.drawOrder.length;
@@ -83,7 +85,18 @@ describe("LocalGameAuthority", () => {
     expect(auth.getSnapshot().state).toBe("voting");
     auth.dispatch({
       type: "SUBMIT_VOTES",
-      votes: { "1": 3, "2": 3, "3": 1 },
+      voterIndex: 1,
+      votedForIndex: 3,
+    });
+    auth.dispatch({
+      type: "SUBMIT_VOTES",
+      voterIndex: 2,
+      votedForIndex: 3,
+    });
+    auth.dispatch({
+      type: "SUBMIT_VOTES",
+      voterIndex: 3,
+      votedForIndex: 1,
     });
     expect(auth.getSnapshot().state).toBe("scoring");
   });

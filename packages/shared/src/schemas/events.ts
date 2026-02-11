@@ -24,6 +24,7 @@ const SetCategoryEvent = z.object({
 
 const CardsRevealedEvent = z.object({
   type: z.literal("CARDS_REVEALED"),
+  playerIndex: z.number().int().min(0),
 });
 
 const ColorsChosenEvent = z.object({
@@ -36,7 +37,8 @@ const MarkMadeEvent = z.object({
 
 const SubmitVotesEvent = z.object({
   type: z.literal("SUBMIT_VOTES"),
-  votes: z.record(z.string(), z.number().int().min(0)),
+  voterIndex: z.number().int().min(0),
+  votedForIndex: z.number().int().min(0),
 });
 
 const GuessTitleEvent = z.object({

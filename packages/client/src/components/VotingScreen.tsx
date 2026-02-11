@@ -8,27 +8,33 @@ export function VotingScreen() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
-  const [votes, setVotes] = useState<Record<string, number>>({});
   const [currentStep, setCurrentStep] = useState(0);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
 
   if (!snapshot) return null;
 
-  const { players, drawOrder } = snapshot.context;
+  const { players, drawOrder, votes: submittedVotes } = snapshot.context;
 
   const voterIndices = drawOrder ?? [];
   const myVoterIndices = voterIndices.filter((idx) => myIndices.includes(idx));
 
   if (currentStep >= myVoterIndices.length) {
+    const pendingVotes = voterIndices.filter(
+      (index) => submittedVotes[String(index)] === undefined
+    );
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
-        <h2 className="text-2xl font-bold">All votes in!</h2>
-        <button
-          onClick={() => dispatch({ type: "SUBMIT_VOTES", votes })}
-          className="bg-blue-600 text-white px-6 py-3 rounded text-lg"
-        >
-          Reveal Results
-        </button>
+        {pendingVotes.length === 0 ? (
+          <>
+            <h2 className="text-2xl font-bold">All votes in!</h2>
+            <p className="text-gray-500">Waiting to reveal results.</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold">Waiting for votes...</h2>
+            <p className="text-gray-500">Still waiting on {pendingVotes.length}.</p>
+          </>
+        )}
       </div>
     );
   }
@@ -41,7 +47,11 @@ export function VotingScreen() {
     .map((idx) => ({ index: idx, player: players[idx]! }));
 
   const handleVote = (votedForIndex: number) => {
-    setVotes((prev) => ({ ...prev, [String(voterPlayerIndex)]: votedForIndex }));
+    dispatch({
+      type: "SUBMIT_VOTES",
+      voterIndex: voterPlayerIndex,
+      votedForIndex,
+    });
     setCurrentStep((prev) => prev + 1);
   };
 

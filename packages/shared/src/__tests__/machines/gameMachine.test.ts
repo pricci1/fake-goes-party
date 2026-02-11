@@ -67,6 +67,54 @@ describe("gameMachine — category selection", () => {
   });
 });
 
+describe("gameMachine — ready checks", () => {
+  test("CARDS_REVEALED waits for all artists", () => {
+    const s = setup(4);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    expect(getState(s)).toBe("cardDistribution");
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
+    expect(getState(s)).toBe("cardDistribution");
+    s.send({ type: "CARDS_REVEALED", playerIndex: 3 });
+    expect(getState(s)).toBe("colorSelection");
+  });
+
+  test("SUBMIT_VOTES waits for all artists", () => {
+    const s = setup(4);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 3 });
+    s.send({ type: "COLORS_CHOSEN" });
+    const artistCount = 3;
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < artistCount; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
+    expect(getState(s)).toBe("voting");
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 2 });
+    expect(getState(s)).toBe("voting");
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 2 });
+    expect(getState(s)).toBe("fakeArtistGuess");
+  });
+});
+
 describe("gameMachine — drawing flow", () => {
   function setupToDrawing(playerCount = 4) {
     const s = setup(playerCount);
@@ -77,7 +125,9 @@ describe("gameMachine — drawing flow", () => {
       title: "Cat",
       fakeArtistIndex: 2,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    for (let i = 1; i < playerCount; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
     s.send({ type: "COLORS_CHOSEN" });
     return s;
   }
@@ -130,7 +180,9 @@ describe("gameMachine — voting & scoring", () => {
       title: "Cat",
       fakeArtistIndex: 2,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 3 });
     s.send({ type: "COLORS_CHOSEN" });
     const artistCount = 3;
     for (let round = 0; round < 2; round++) {
@@ -144,10 +196,10 @@ describe("gameMachine — voting & scoring", () => {
   test("fake NOT caught → QM and fake score +2", () => {
     const s = setupToVoting();
     // Nobody votes for player 2 (the fake)
-    s.send({
-      type: "SUBMIT_VOTES",
-      votes: { "1": 3, "2": 3, "3": 1 },
-    });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 3 });
+    expect(getState(s)).toBe("voting");
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 1 });
     expect(getState(s)).toBe("scoring");
     const ctx = getCtx(s);
     expect(ctx.fakeCaught).toBe(false);
@@ -158,10 +210,10 @@ describe("gameMachine — voting & scoring", () => {
   test("fake caught, wrong guess → artists score +1", () => {
     const s = setupToVoting();
     // All vote for player 2 (the fake)
-    s.send({
-      type: "SUBMIT_VOTES",
-      votes: { "1": 2, "2": 2, "3": 2 },
-    });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 2 });
+    expect(getState(s)).toBe("voting");
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 2 });
     expect(getState(s)).toBe("fakeArtistGuess");
     s.send({ type: "GUESS_TITLE", guess: "Dog" });
     expect(getState(s)).toBe("scoring");
@@ -176,10 +228,10 @@ describe("gameMachine — voting & scoring", () => {
 
   test("fake caught, correct guess → QM and fake score +2", () => {
     const s = setupToVoting();
-    s.send({
-      type: "SUBMIT_VOTES",
-      votes: { "1": 2, "2": 2, "3": 2 },
-    });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 2 });
+    expect(getState(s)).toBe("voting");
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 2 });
     s.send({ type: "GUESS_TITLE", guess: "Cat" });
     expect(getState(s)).toBe("scoring");
     const ctx = getCtx(s);
@@ -198,7 +250,9 @@ describe("gameMachine — checkWinner & gameOver", () => {
       title: "Cat",
       fakeArtistIndex: fakeIndex,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 3 });
     s.send({ type: "COLORS_CHOSEN" });
     const ctx = getCtx(s);
     const artistCount = ctx.drawOrder.length;
@@ -208,10 +262,9 @@ describe("gameMachine — checkWinner & gameOver", () => {
       }
     }
     // Fake not caught → QM and fake get +2
-    s.send({
-      type: "SUBMIT_VOTES",
-      votes: { "1": 3, "2": 3, "3": 1 },
-    });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 1 });
   }
 
   test("no winner → next round (setupQM → categorySelection)", () => {
@@ -281,7 +334,8 @@ describe("gameMachine — player count edge cases", () => {
       title: "Cat",
       fakeArtistIndex: 1,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
     s.send({ type: "COLORS_CHOSEN" });
     expect(getCtx(s).drawOrder.length).toBe(2);
 
@@ -305,7 +359,9 @@ describe("gameMachine — player count edge cases", () => {
       title: "Dog",
       fakeArtistIndex: 5,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    for (let i = 1; i < 10; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
     s.send({ type: "COLORS_CHOSEN" });
     expect(getCtx(s).drawOrder.length).toBe(9);
 
@@ -345,10 +401,12 @@ describe("gameMachine — invalid events for state", () => {
       title: "Cat",
       fakeArtistIndex: 2,
     });
-    s.send({ type: "CARDS_REVEALED" });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 1 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 2 });
+    s.send({ type: "CARDS_REVEALED", playerIndex: 3 });
     s.send({ type: "COLORS_CHOSEN" });
     expect(getState(s)).toBe("drawingPhase");
-    s.send({ type: "SUBMIT_VOTES", votes: { "1": 2 } });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
     expect(getState(s)).toBe("drawingPhase");
   });
 });

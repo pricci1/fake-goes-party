@@ -15,6 +15,7 @@ export const GameContextSchema = z.object({
   fakeArtistIndex: z.number().int().min(0).nullable(),
   category: z.string(),
   title: z.string(),
+  cardsRevealed: z.record(z.string(), z.boolean()),
   votes: z.record(z.string(), z.number().int().min(0)),
   drawRound: z.number().int().min(0).max(2),
   cards: z.array(CardSchema),
