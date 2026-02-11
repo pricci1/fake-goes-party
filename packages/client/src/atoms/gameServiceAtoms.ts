@@ -77,7 +77,7 @@ gameSubscriptionsAtom.onMount = () => {
     // Try to get initial snapshot, but don't fail if not ready (for remote mode)
     try {
       store.set(gameSnapshotAtom, services.authority.getSnapshot());
-    } catch (error) {
+    } catch {
       console.log("[gameSubscriptionsAtom] snapshot not ready yet (remote mode expected)");
     }
 
