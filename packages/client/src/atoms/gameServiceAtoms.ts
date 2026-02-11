@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { getDefaultStore } from "jotai/vanilla";
+import { atomEffect } from "jotai-effect";
 import {
   LocalGameAuthority,
   LocalDrawSync,
@@ -48,62 +48,33 @@ export const gameServicesAtom = atom<GameServices | null>((get) => {
   };
 });
 
-export const gameSubscriptionsAtom = atom(null);
+export const gameSubscriptionsAtom = atomEffect((get, set) => {
+  const services = get(gameServicesAtom);
+  if (!services) return;
 
-gameSubscriptionsAtom.onMount = () => {
-  const store = getDefaultStore();
-  let cleanup: (() => void) | null = null;
+  try {
+    set(gameSnapshotAtom, services.authority.getSnapshot());
+  } catch {
+    // snapshot not ready yet (remote mode)
+  }
 
-  console.log("[gameSubscriptionsAtom] mount");
+  let lastRound = -1;
+  const unsubGame = services.authority.subscribe((snapshot) => {
+    set(gameSnapshotAtom, snapshot);
 
-  const setupSubscriptions = (services: GameServices | null) => {
-    if (!services || cleanup) return;
-
-    console.log("[gameSubscriptionsAtom] setup subscriptions");
-
-    // Try to get initial snapshot, but don't fail if not ready (for remote mode)
-    try {
-      store.set(gameSnapshotAtom, services.authority.getSnapshot());
-    } catch {
-      console.log("[gameSubscriptionsAtom] snapshot not ready yet (remote mode expected)");
+    if (snapshot.context.round !== lastRound) {
+      lastRound = snapshot.context.round;
+      services.drawSync.clear();
+      set(strokesAtom, []);
     }
+  });
 
-    let lastRound = -1;
-    const unsubGame = services.authority.subscribe((snapshot) => {
-      console.log("[gameSubscriptionsAtom] snapshot update", {
-        phase: snapshot.state,
-        round: snapshot.context.round,
-      });
-      store.set(gameSnapshotAtom, snapshot);
-
-      if (snapshot.context.round !== lastRound) {
-        lastRound = snapshot.context.round;
-        services.drawSync.clear();
-        store.set(strokesAtom, []);
-      }
-    });
-
-    const unsubDraw = services.drawSync.onStroke(() => {
-      console.log("[gameSubscriptionsAtom] stroke update");
-      store.set(strokesAtom, services.drawSync.getStrokes());
-    });
-
-    cleanup = () => {
-      unsubGame();
-      unsubDraw();
-      cleanup = null;
-    };
-  };
-
-  setupSubscriptions(store.get(gameServicesAtom));
-  const unsubServices = store.sub(gameServicesAtom, () => {
-    console.log("[gameSubscriptionsAtom] services changed");
-    setupSubscriptions(store.get(gameServicesAtom));
+  const unsubDraw = services.drawSync.onStroke(() => {
+    set(strokesAtom, services.drawSync.getStrokes());
   });
 
   return () => {
-    console.log("[gameSubscriptionsAtom] unmount");
-    if (cleanup) cleanup();
-    unsubServices();
+    unsubGame();
+    unsubDraw();
   };
-};
+});
