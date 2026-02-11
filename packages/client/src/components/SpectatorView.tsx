@@ -6,21 +6,7 @@ import {
   actingPlayerNameAtom,
 } from "../atoms";
 import { isSpectatorAtom } from "../atoms/modeAtoms";
-import type { Point } from "@fake-goes-party/shared";
-
-function drawStrokeOnCanvas(ctx: CanvasRenderingContext2D, points: Point[], color: string) {
-  if (points.length < 2) return;
-  ctx.beginPath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 3;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.moveTo(points[0].x, points[0].y);
-  for (let i = 1; i < points.length; i++) {
-    ctx.lineTo(points[i].x, points[i].y);
-  }
-  ctx.stroke();
-}
+import { drawStrokeOnCanvas, getArtistColor } from "./drawingUtils";
 
 function SpectatorCanvas() {
   const strokes = useAtomValue(strokesAtom);
@@ -30,6 +16,13 @@ function SpectatorCanvas() {
 
   const ctx = snapshot?.context;
   const drawRound = (ctx?.drawRound ?? 1) as 1 | 2;
+  const playerLegend = ctx?.players
+    .map((player, index) => ({ player, index }))
+    .filter(({ index }) => index !== ctx?.qmIndex)
+    .map(({ player, index }) => ({
+      name: player.name,
+      color: getArtistColor(index, ctx?.qmIndex ?? 0, ctx?.players.length ?? 0),
+    })) ?? [];
 
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -61,6 +54,20 @@ function SpectatorCanvas() {
         height={400}
         className="rounded bg-white border-2 border-gray-300"
       />
+      <div className="w-full max-w-md">
+        <p className="text-xs uppercase tracking-wide text-gray-400">Player colors</p>
+        <div className="mt-2 flex flex-wrap justify-center gap-3">
+          {playerLegend.map((player) => (
+            <div key={player.name} className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-full border border-white shadow"
+                style={{ backgroundColor: player.color }}
+              />
+              <span className="text-sm text-gray-600">{player.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
