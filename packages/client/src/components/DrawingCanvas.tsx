@@ -1,4 +1,3 @@
-import { useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import {
   gameSnapshotAtom,
@@ -10,7 +9,9 @@ import {
 } from "../atoms";
 import { useDrawing } from "../hooks/useDrawing";
 import { DevicePassGuard } from "./DevicePassGuard";
-import { drawStrokeOnCanvas, getArtistColor } from "./drawingUtils";
+import { DrawingCanvasSurface } from "./DrawingCanvasSurface";
+import type { PlayerLegendItem } from "./drawingUtils";
+import { getArtistColor, getPlayerLegend } from "./drawingUtils";
 
 interface DrawingCanvasInnerProps {
   playerIndex: number;
@@ -19,7 +20,7 @@ interface DrawingCanvasInnerProps {
   playerName: string;
   canDraw: boolean;
   emphasizeTurn: boolean;
-  playerLegend: Array<{ name: string; color: string }>;
+  playerLegend: PlayerLegendItem[];
 }
 
 function DrawingCanvasInner({
@@ -32,7 +33,6 @@ function DrawingCanvasInner({
   playerLegend,
 }: DrawingCanvasInnerProps) {
   const strokes = useAtomValue(strokesAtom);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawing = useDrawing({
     playerIndex,
@@ -41,30 +41,8 @@ function DrawingCanvasInner({
     enabled: canDraw,
   });
 
-  const renderCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const canvasCtx = canvas.getContext("2d");
-    if (!canvasCtx) return;
-
-    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (const stroke of strokes) {
-      drawStrokeOnCanvas(canvasCtx, stroke.points, stroke.color);
-    }
-
-    if (drawing.inProgressPoints.length > 0) {
-      drawStrokeOnCanvas(canvasCtx, drawing.inProgressPoints, color);
-    }
-  }, [strokes, drawing.inProgressPoints, color]);
-
-  useEffect(() => {
-    renderCanvas();
-  }, [renderCanvas]);
-
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
+    const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
@@ -84,17 +62,18 @@ function DrawingCanvasInner({
         <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        width={400}
-        height={400}
-        className={`rounded bg-white touch-none ${
+      <DrawingCanvasSurface
+        strokes={strokes}
+        playerLegend={playerLegend}
+        canvasClassName={`rounded bg-white touch-none ${
           canDraw ? "" : "opacity-80"
         } ${
           emphasizeTurn
             ? "border-4 border-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]"
             : "border-2 border-gray-300"
         }`}
+        inProgressPoints={drawing.inProgressPoints}
+        inProgressColor={color}
         onPointerDown={(e) => {
           if (!canDraw) return;
           const pt = getCanvasPoint(e);
@@ -123,20 +102,6 @@ function DrawingCanvasInner({
         <p className="text-green-600 font-medium">Stroke submitted! Pass the device to the next player.</p>
       )}
 
-      <div className="w-full max-w-md">
-        <p className="text-xs uppercase tracking-wide text-gray-400">Player colors</p>
-        <div className="mt-2 flex flex-wrap justify-center gap-3">
-          {playerLegend.map((player) => (
-            <div key={player.name} className="flex items-center gap-2">
-              <span
-                className="h-3 w-3 rounded-full border border-white shadow"
-                style={{ backgroundColor: player.color }}
-              />
-              <span className="text-sm text-gray-600">{player.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -155,13 +120,7 @@ export function DrawingCanvas() {
   const currentColor = getArtistColor(currentDrawerPlayerIndex, ctx.qmIndex, ctx.players.length);
   const drawRound = (ctx.drawRound ?? 1) as 1 | 2;
   const currentDrawer = ctx.players[currentDrawerPlayerIndex];
-  const playerLegend = ctx.players
-    .map((player, index) => ({ player, index }))
-    .filter(({ index }) => index !== ctx.qmIndex)
-    .map(({ player, index }) => ({
-      name: player.name,
-      color: getArtistColor(index, ctx.qmIndex, ctx.players.length),
-    }));
+  const playerLegend = getPlayerLegend(ctx.players, ctx.qmIndex);
 
   const canvas = (
     <DrawingCanvasInner

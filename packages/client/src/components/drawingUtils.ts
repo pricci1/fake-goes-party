@@ -1,5 +1,7 @@
 import { AVAILABLE_COLORS } from "@fake-goes-party/shared";
-import type { Point } from "@fake-goes-party/shared";
+import type { Point, Player } from "@fake-goes-party/shared";
+
+export type PlayerLegendItem = { name: string; color: string };
 
 export function drawStrokeOnCanvas(
   ctx: CanvasRenderingContext2D,
@@ -23,4 +25,15 @@ export function getArtistColor(playerIndex: number, qmIndex: number, playerCount
   const artistIndices = Array.from({ length: playerCount }, (_, i) => i).filter(i => i !== qmIndex);
   const artistPos = artistIndices.indexOf(playerIndex);
   return AVAILABLE_COLORS[artistPos % AVAILABLE_COLORS.length];
+}
+
+export function getPlayerLegend(players: Player[], qmIndex: number | null | undefined) {
+  const normalizedQmIndex = qmIndex ?? -1;
+  return players
+    .map((player, index) => ({ player, index }))
+    .filter(({ index }) => index !== normalizedQmIndex)
+    .map(({ player, index }) => ({
+      name: player.name,
+      color: getArtistColor(index, normalizedQmIndex, players.length),
+    }));
 }
