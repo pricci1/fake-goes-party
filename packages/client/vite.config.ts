@@ -9,16 +9,29 @@ export default defineConfig({
     registerType: 'prompt',
     injectRegister: false,
 
-    pwaAssets: {
-      disabled: false,
-      config: true,
-    },
-
     manifest: {
       name: 'fake-goes-party',
       short_name: 'fake-goes-party',
       description: 'Fake Goes Party game',
       theme_color: '#ffffff',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+      ],
     },
 
     workbox: {
