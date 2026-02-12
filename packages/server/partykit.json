@@ -1,8 +1,10 @@
 {
   "name": "fake-goes-party",
   "main": "src/index.ts",
+  "compatibilityDate": "2026-02-12",
   "parties": {
     "game": "src/parties/game.ts",
     "drawing": "src/parties/drawing.ts"
-  }
+  },
+  "serve": "../client/dist"
 }
