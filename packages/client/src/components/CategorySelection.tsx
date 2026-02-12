@@ -15,9 +15,19 @@ export function CategorySelection() {
 
   if (!snapshot) return null;
 
+  const { aiQm } = snapshot.context;
   const qmIndex = snapshot.context.qmIndex;
   const qmName = snapshot.context.players[qmIndex]?.name ?? "QM";
   const playerCount = snapshot.context.players.length;
+
+  if (aiQm) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+        <h2 className="text-2xl font-bold">AI Question Master</h2>
+        <p className="text-gray-500 animate-pulse">Choosing a category and title...</p>
+      </div>
+    );
+  }
 
   const submit = () => {
     if (!category.trim() || !title.trim()) return;

@@ -7,8 +7,9 @@ import { WIN_THRESHOLD } from "../../constants/index.ts";
 
 type GameService = ReturnType<typeof setup>;
 
-function setup(playerCount = 4) {
+function setup(playerCount = 4, aiQm = false) {
   const ctx = createInitialContext();
+  ctx.aiQm = aiQm;
   for (let i = 0; i < playerCount; i++) {
     ctx.players.push({ id: `p${i}`, name: `Player${i}` });
     ctx.scores.push(0);
@@ -408,5 +409,124 @@ describe("gameMachine — invalid events for state", () => {
     expect(getState(s)).toBe("drawingPhase");
     s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
     expect(getState(s)).toBe("drawingPhase");
+  });
+});
+
+describe("gameMachine — AI QM mode", () => {
+  test("setupQM sets qmIndex = -1 when aiQm = true", () => {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    expect(getState(s)).toBe("categorySelection");
+    expect(getCtx(s).qmIndex).toBe(-1);
+  });
+
+  test("SET_CATEGORY produces cards for all players (none excluded)", () => {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    expect(getState(s)).toBe("cardDistribution");
+    const ctx = getCtx(s);
+    expect(ctx.cards.length).toBe(4); // all players get cards
+    expect(ctx.cards.filter((c) => c.isFake).length).toBe(1);
+  });
+
+  test("full round: all players draw and vote", () => {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    // All 4 players reveal cards
+    for (let i = 0; i < 4; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    expect(getState(s)).toBe("colorSelection");
+    s.send({ type: "COLORS_CHOSEN" });
+    expect(getCtx(s).drawOrder.length).toBe(4);
+
+    // 2 draw rounds × 4 players
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < 4; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    expect(getState(s)).toBe("voting");
+
+    // All 4 players vote
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 0, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 2 });
+    expect(getState(s)).toBe("fakeArtistGuess");
+  });
+
+  test("scoring: QM points not awarded when qmIndex = -1", () => {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    for (let i = 0; i < 4; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < 4; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    // Nobody votes for the fake → fake not caught
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 0, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 0 });
+    expect(getState(s)).toBe("scoring");
+    const ctx = getCtx(s);
+    expect(ctx.fakeCaught).toBe(false);
+    // Only fake artist gets points, no QM score at index -1
+    expect(ctx.scores[2]).toBe(2); // fake artist
+    expect(ctx.scores[0]).toBe(0);
+    expect(ctx.scores[1]).toBe(0);
+    expect(ctx.scores[3]).toBe(0);
+  });
+
+  test("multi-round: qmIndex stays -1 across rounds", () => {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    for (let i = 0; i < 4; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < 4; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 0, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 3 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 0 });
+    s.send({ type: "CONTINUE" });
+    // Should be in categorySelection for round 2
+    expect(getState(s)).toBe("categorySelection");
+    expect(getCtx(s).qmIndex).toBe(-1);
+    expect(getCtx(s).round).toBe(1);
   });
 });

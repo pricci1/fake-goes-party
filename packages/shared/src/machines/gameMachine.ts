@@ -14,6 +14,7 @@ import {
   getArtistIndicesSet,
   isFakeCaught,
   findWinners,
+  applyScoring,
 } from "../logic/index.ts";
 
 export function createGameMachine(initialContext: GameContext) {
@@ -33,7 +34,9 @@ export function createGameMachine(initialContext: GameContext) {
         immediate(
           "categorySelection",
           reduce((ctx: GameContext) => {
-            const qmIndex = getQmIndex(ctx.round, ctx.players.length);
+            const qmIndex = ctx.aiQm
+              ? -1
+              : getQmIndex(ctx.round, ctx.players.length);
             return {
               ...ctx,
               qmIndex,
@@ -256,15 +259,18 @@ export function createGameMachine(initialContext: GameContext) {
         immediate(
           "scoring",
           reduce((ctx: GameContext) => {
-            const scores = [...ctx.scores];
-            scores[ctx.qmIndex] = (scores[ctx.qmIndex] ?? 0) + 2;
-            scores[ctx.fakeArtistIndex!] =
-              (scores[ctx.fakeArtistIndex!] ?? 0) + 2;
+            const result = applyScoring({
+              scores: ctx.scores,
+              qmIndex: ctx.qmIndex,
+              fakeArtistIndex: ctx.fakeArtistIndex!,
+              fakeCaught: false,
+              correctGuess: null,
+              playerCount: ctx.players.length,
+            });
             return {
               ...ctx,
-              scores,
-              scoreMessage:
-                "The Fake Artist was NOT caught! QM and Fake Artist earn 2 points each.",
+              scores: result.scores,
+              scoreMessage: result.scoreMessage,
             };
           })
         )
@@ -290,34 +296,38 @@ export function createGameMachine(initialContext: GameContext) {
               ctx.title.trim().toLowerCase()
           ),
           reduce((ctx: GameContext) => {
-            const scores = [...ctx.scores];
-            scores[ctx.qmIndex] = (scores[ctx.qmIndex] ?? 0) + 2;
-            scores[ctx.fakeArtistIndex!] =
-              (scores[ctx.fakeArtistIndex!] ?? 0) + 2;
+            const result = applyScoring({
+              scores: ctx.scores,
+              qmIndex: ctx.qmIndex,
+              fakeArtistIndex: ctx.fakeArtistIndex!,
+              fakeCaught: true,
+              correctGuess: true,
+              playerCount: ctx.players.length,
+            });
             return {
               ...ctx,
-              scores,
+              scores: result.scores,
               correctGuess: true,
-              scoreMessage:
-                "The Fake Artist guessed correctly! QM and Fake Artist earn 2 points each.",
+              scoreMessage: result.scoreMessage,
             };
           })
         ),
         immediate(
           "scoring",
           reduce((ctx: GameContext) => {
-            const scores = [...ctx.scores];
-            for (let i = 0; i < ctx.players.length; i++) {
-              if (i !== ctx.qmIndex && i !== ctx.fakeArtistIndex) {
-                scores[i] = (scores[i] ?? 0) + 1;
-              }
-            }
+            const result = applyScoring({
+              scores: ctx.scores,
+              qmIndex: ctx.qmIndex,
+              fakeArtistIndex: ctx.fakeArtistIndex!,
+              fakeCaught: true,
+              correctGuess: false,
+              playerCount: ctx.players.length,
+            });
             return {
               ...ctx,
-              scores,
+              scores: result.scores,
               correctGuess: false,
-              scoreMessage:
-                "Wrong guess! All Artists earn 1 point each.",
+              scoreMessage: result.scoreMessage,
             };
           })
         )

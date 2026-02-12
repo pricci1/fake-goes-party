@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@fake-goes-party/shared": "workspace:*",
+    "@openrouter/ai-sdk-provider": "^2.2.3",
+    "ai": "^6.0.84",
     "partykit": "^0.0.115",
-    "robot3": "^1.2.0"
+    "robot3": "^1.2.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bun": "latest"

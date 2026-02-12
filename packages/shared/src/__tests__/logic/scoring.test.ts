@@ -55,3 +55,46 @@ describe("applyScoring", () => {
     expect(result.scores).toEqual([3, 3, 2, 2, 1]);
   });
 });
+
+describe("applyScoring — AI QM (qmIndex = -1)", () => {
+  const baseScores = [0, 0, 0, 0, 0];
+
+  test("fake not caught: only fake gets +2, no QM points", () => {
+    const result = applyScoring({
+      scores: baseScores,
+      qmIndex: -1,
+      fakeArtistIndex: 2,
+      fakeCaught: false,
+      correctGuess: null,
+      playerCount: 5,
+    });
+    expect(result.scores).toEqual([0, 0, 2, 0, 0]);
+    expect(result.scoreMessage).not.toContain("QM");
+  });
+
+  test("fake caught, correct guess: only fake gets +2", () => {
+    const result = applyScoring({
+      scores: baseScores,
+      qmIndex: -1,
+      fakeArtistIndex: 2,
+      fakeCaught: true,
+      correctGuess: true,
+      playerCount: 5,
+    });
+    expect(result.scores).toEqual([0, 0, 2, 0, 0]);
+    expect(result.scoreMessage).not.toContain("QM");
+  });
+
+  test("fake caught, wrong guess: all non-fake artists get +1", () => {
+    const result = applyScoring({
+      scores: baseScores,
+      qmIndex: -1,
+      fakeArtistIndex: 2,
+      fakeCaught: true,
+      correctGuess: false,
+      playerCount: 5,
+    });
+    // qmIndex=-1 excluded nobody, so all except fakeArtistIndex=2 get +1
+    expect(result.scores).toEqual([1, 1, 0, 1, 1]);
+  });
+});

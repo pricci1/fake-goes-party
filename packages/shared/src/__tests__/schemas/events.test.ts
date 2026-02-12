@@ -95,6 +95,21 @@ describe("GameEventSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  test("accepts SET_AI_QM", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SET_AI_QM",
+      enabled: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects SET_AI_QM without enabled", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SET_AI_QM",
+    });
+    expect(result.success).toBe(false);
+  });
+
   test("rejects unknown event type", () => {
     const result = GameEventSchema.safeParse({ type: "EXPLODE" });
     expect(result.success).toBe(false);

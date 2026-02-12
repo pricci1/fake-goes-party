@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   playersAtom,
+  gameSnapshotAtom,
   registerPlayerIdAtom,
   myPlayerIndicesAtom,
   isMultiSeatAtom,
@@ -15,8 +16,10 @@ export function Lobby() {
   const players = useAtomValue(playersAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const snapshot = useAtomValue(gameSnapshotAtom);
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
+  const aiQm = snapshot?.context.aiQm ?? false;
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
   const setSpectator = useSetAtom(isSpectatorAtom);
   const [name, setName] = useState("");
@@ -129,6 +132,23 @@ export function Lobby() {
       <p className="text-sm text-gray-500">
         {players.length} / {MIN_PLAYERS} players minimum
       </p>
+
+      {mode === "remote" && (
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={aiQm}
+            onChange={() => dispatch({ type: "SET_AI_QM", enabled: !aiQm })}
+            className="w-4 h-4 accent-purple-600"
+          />
+          <span className="text-sm text-gray-700">
+            AI Question Master
+          </span>
+          <span className="text-xs text-gray-400">
+            (no player sits out)
+          </span>
+        </label>
+      )}
 
       <button
         onClick={startGame}

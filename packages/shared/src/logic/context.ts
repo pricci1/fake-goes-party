@@ -4,6 +4,7 @@ export function createInitialContext(): GameContext {
   return {
     players: [],
     round: 0,
+    aiQm: false,
     qmIndex: 0,
     fakeArtistIndex: null,
     category: "",
@@ -30,6 +31,7 @@ export function resetRoundContext(
   return {
     ...ctx,
     round: nextRound,
+    aiQm: ctx.aiQm,
     qmIndex: 0,
     fakeArtistIndex: null,
     category: "",

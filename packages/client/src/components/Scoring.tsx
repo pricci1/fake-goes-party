@@ -10,7 +10,7 @@ export function Scoring() {
 
   if (!snapshot) return null;
 
-  const { players, scores, scoreMessage, fakeArtistIndex, fakeCaught, correctGuess, category, title } = snapshot.context;
+  const { players, scores, scoreMessage, fakeArtistIndex, fakeCaught, correctGuess, category, title, aiQm } = snapshot.context;
   const fakeName = players[fakeArtistIndex ?? 0]?.name ?? "???";
 
   return (
@@ -38,13 +38,13 @@ export function Scoring() {
             }
           >
             {correctGuess
-              ? `${fakeName} guessed correctly! Fake Artist and QM score 2 points.`
+              ? `${fakeName} guessed correctly! ${aiQm ? "Fake Artist scores 2 points." : "Fake Artist and QM score 2 points."}`
               : `${fakeName} guessed wrong! Artists score 1 point each.`}
           </p>
         )}
         {fakeCaught === false && (
           <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-rose-700">
-            {fakeName} wasn't caught! Fake Artist and QM score 2 points.
+            {fakeName} wasn't caught! {aiQm ? "Fake Artist scores 2 points." : "Fake Artist and QM score 2 points."}
           </p>
         )}
         {scoreMessage && <p className="text-sm text-gray-500">{scoreMessage}</p>}

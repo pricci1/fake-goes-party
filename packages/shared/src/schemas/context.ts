@@ -11,7 +11,8 @@ export type Card = z.infer<typeof CardSchema>;
 export const GameContextSchema = z.object({
   players: z.array(PlayerSchema),
   round: z.number().int().min(0),
-  qmIndex: z.number().int().min(0),
+  aiQm: z.boolean(),
+  qmIndex: z.number().int().min(-1),
   fakeArtistIndex: z.number().int().min(0).nullable(),
   category: z.string(),
   title: z.string(),

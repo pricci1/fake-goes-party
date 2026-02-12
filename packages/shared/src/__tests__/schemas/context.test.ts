@@ -16,6 +16,7 @@ describe("GameContextSchema", () => {
       { id: "p3", name: "Charlie" },
     ],
     round: 0,
+    aiQm: false,
     qmIndex: 0,
     fakeArtistIndex: null,
     category: "",
@@ -47,6 +48,7 @@ describe("GameSnapshotSchema", () => {
       context: {
         players: [],
         round: 0,
+        aiQm: false,
         qmIndex: 0,
         fakeArtistIndex: null,
         category: "",

@@ -8,12 +8,16 @@ import {
   type GameEvent,
 } from "@fake-goes-party/shared";
 import type { ServerMessage, ClientMessage } from "./types.ts";
+import { AiQmProvider } from "../ai/aiQmProvider.ts";
 
 type GameMachine = ReturnType<typeof createGameMachine>["machine"];
 type GameService = Service<GameMachine>;
 
 export default class GameParty implements Party.Server {
   private service: GameService | null = null;
+  private aiQmProvider = new AiQmProvider();
+  private previousCategories: string[] = [];
+  private aiQmInFlight = false;
 
   constructor(readonly room: Party.Room) {}
 
@@ -55,7 +59,7 @@ export default class GameParty implements Party.Server {
 
         const validEvent = parsed.data;
 
-        // Handle lobby mutations (ADD_PLAYER, REMOVE_PLAYER)
+        // Handle lobby mutations (ADD_PLAYER, REMOVE_PLAYER, SET_AI_QM)
         if (this.service) {
           const currentState = this.service.machine.current;
 
@@ -71,6 +75,12 @@ export default class GameParty implements Party.Server {
               const ctx = this.service.context;
               ctx.players.splice(validEvent.playerIndex, 1);
               ctx.scores.splice(validEvent.playerIndex, 1);
+              this.broadcastSnapshot();
+              return;
+            }
+            if (validEvent.type === "SET_AI_QM") {
+              const ctx = this.service.context;
+              ctx.aiQm = validEvent.enabled;
               this.broadcastSnapshot();
               return;
             }
@@ -101,5 +111,58 @@ export default class GameParty implements Party.Server {
     const snapshot = this.getSnapshot();
     const message: ServerMessage = { type: "snapshot", snapshot };
     this.room.broadcast(JSON.stringify(message));
+    this.handleAiQmIfNeeded();
+  }
+
+  private handleAiQmIfNeeded(): void {
+    if (!this.service) return;
+    const currentState = this.service.machine.current;
+    const ctx = this.service.context;
+    if (currentState !== "categorySelection" || !ctx.aiQm) return;
+    if (this.aiQmInFlight) return;
+
+    this.aiQmInFlight = true;
+
+    const tryGenerate = async (retries = 1): Promise<void> => {
+      try {
+        const result = await this.aiQmProvider.pickCategoryAndTitle({
+          playerCount: ctx.players.length,
+          previousCategories: this.previousCategories,
+        });
+
+        this.previousCategories.push(result.category);
+
+        const fakeArtistIndex = Math.floor(
+          Math.random() * ctx.players.length
+        );
+
+        this.service!.send({
+          type: "SET_CATEGORY",
+          category: result.category,
+          title: result.title,
+          fakeArtistIndex,
+        } as GameEvent);
+      } catch (error) {
+        if (retries > 0) {
+          await tryGenerate(retries - 1);
+        } else {
+          // Fallback to hardcoded category
+          console.error("AI QM failed, using fallback:", error);
+          const fakeArtistIndex = Math.floor(
+            Math.random() * ctx.players.length
+          );
+          this.service!.send({
+            type: "SET_CATEGORY",
+            category: "Animals",
+            title: "Cat",
+            fakeArtistIndex,
+          } as GameEvent);
+        }
+      } finally {
+        this.aiQmInFlight = false;
+      }
+    };
+
+    tryGenerate();
   }
 }

@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { currentPhaseAtom } from "../atoms";
+import { currentPhaseAtom, gameSnapshotAtom } from "../atoms";
 import { isSpectatorAtom } from "../atoms/modeAtoms";
 import { Lobby } from "./Lobby";
 import { CategorySelection } from "./CategorySelection";
@@ -61,12 +61,15 @@ export function PhaseRouter() {
 }
 
 function SpectatorRouter({ phase }: { phase: string | null }) {
+  const snapshot = useAtomValue(gameSnapshotAtom);
+  const aiQm = snapshot?.context.aiQm ?? false;
+
   switch (phase) {
     case "lobby":
       return <SpectatorView message="Waiting for the game to start…" />;
     case "setupQM":
     case "categorySelection":
-      return <SpectatorView message="The Question Master is picking a category…" />;
+      return <SpectatorView message={aiQm ? "The AI is choosing a category…" : "The Question Master is picking a category…"} />;
     case "cardDistribution":
     case "colorSelection":
       return <SpectatorView message="Players are getting ready…" />;
