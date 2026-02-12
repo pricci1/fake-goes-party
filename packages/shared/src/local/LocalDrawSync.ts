@@ -3,8 +3,12 @@ import type { DrawSync } from "../interfaces/index.ts";
 import type { Unsubscribe } from "../interfaces/index.ts";
 
 export class LocalDrawSync implements DrawSync {
-  private strokes: Stroke[] = [];
+  private strokes: Stroke[];
   private listeners = new Set<(stroke: Stroke) => void>();
+
+  constructor(initialStrokes?: Stroke[]) {
+    this.strokes = initialStrokes ? [...initialStrokes] : [];
+  }
 
   pushStroke(stroke: Stroke): void {
     this.strokes.push(stroke);

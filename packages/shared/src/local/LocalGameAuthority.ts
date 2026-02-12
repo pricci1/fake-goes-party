@@ -9,12 +9,17 @@ export class LocalGameAuthority implements GameAuthority {
   private service;
   private listeners = new Set<(snapshot: GameSnapshot) => void>();
 
-  constructor() {
-    const ctx = createInitialContext();
+  constructor(initialSnapshot?: GameSnapshot) {
+    const ctx = initialSnapshot?.context ?? createInitialContext();
     const { machine, initialContext } = createGameMachine(ctx);
     this.service = interpret(machine, () => {
       this.notifyListeners();
     }, initialContext);
+
+    // robot3's service is a plain mutable object — patch to restore phase
+    if (initialSnapshot) {
+      this.service.machine.current = initialSnapshot.state;
+    }
   }
 
   dispatch(event: GameEvent): void {

@@ -3,11 +3,19 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { previousRemoteRoomIdsAtom } from "../atoms/playerIdentityAtoms";
 import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
 import { generateRoomId, getRoomIdFromUrl, setRoomIdInUrl } from "../utils/roomId";
+import {
+  savedLocalGameAtom,
+  localRestoreAtom,
+  clearLocalGameSaveAtom,
+} from "../atoms/localPersistenceAtoms";
 
 export function ModeSelection() {
   const setMode = useSetAtom(gameModeAtom);
   const setRoomId = useSetAtom(roomIdAtom);
   const previousRoomIds = useAtomValue(previousRemoteRoomIdsAtom);
+  const savedLocalGame = useAtomValue(savedLocalGameAtom);
+  const setLocalRestore = useSetAtom(localRestoreAtom);
+  const clearLocalSave = useSetAtom(clearLocalGameSaveAtom);
 
   // Auto-join if room ID in URL
   useEffect(() => {
@@ -20,6 +28,17 @@ export function ModeSelection() {
   }, [setMode, setRoomId]);
 
   const handleLocalMode = () => {
+    setLocalRestore(null);
+    clearLocalSave();
+    setMode("local");
+  };
+
+  const handleResumeLocal = () => {
+    if (!savedLocalGame) return;
+    setLocalRestore({
+      snapshot: savedLocalGame.snapshot,
+      strokes: savedLocalGame.strokes,
+    });
     setMode("local");
   };
 
@@ -78,6 +97,23 @@ export function ModeSelection() {
         <br />
         <span className="font-semibold text-gray-700">Remote Mode:</span> Online room. Single or multiple players per device.
       </p>
+
+      {savedLocalGame ? (
+        <div className="flex flex-col items-center gap-3 w-full max-w-md">
+          <p className="text-sm font-semibold text-gray-700">Saved Local Game</p>
+          <button
+            onClick={handleResumeLocal}
+            className="border border-blue-400 bg-blue-50 text-blue-700 px-4 py-3 rounded hover:bg-blue-100 w-full"
+          >
+            <span className="font-semibold">Resume Local Game</span>
+            <span className="block text-xs text-blue-500 mt-1">
+              {savedLocalGame.snapshot.context.players.map((p) => p.name).join(", ")}
+              {" — "}
+              {savedLocalGame.snapshot.state}
+            </span>
+          </button>
+        </div>
+      ) : null}
 
       {previousRoomIds.length > 0 ? (
         <div className="flex flex-col items-center gap-3 w-full max-w-md">

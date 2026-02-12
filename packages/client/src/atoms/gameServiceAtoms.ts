@@ -12,6 +12,7 @@ import {
 import { gameSnapshotAtom } from "./snapshotAtom";
 import { strokesAtom } from "./drawAtoms";
 import { gameModeAtom, roomIdAtom } from "./modeAtoms";
+import { localRestoreAtom, localPersistenceEffectAtom } from "./localPersistenceAtoms";
 
 export interface GameServices {
   authority: GameAuthority;
@@ -28,8 +29,9 @@ export const gameServicesAtom = atom<GameServices | null>((get) => {
   let drawSync: DrawSync;
 
   if (mode === "local") {
-    authority = new LocalGameAuthority();
-    drawSync = new LocalDrawSync();
+    const restore = get(localRestoreAtom);
+    authority = new LocalGameAuthority(restore?.snapshot);
+    drawSync = new LocalDrawSync(restore?.strokes);
   } else if (mode === "remote") {
     if (!roomId) {
       throw new Error("Room ID required for remote mode");
@@ -51,6 +53,9 @@ export const gameServicesAtom = atom<GameServices | null>((get) => {
 export const gameSubscriptionsAtom = atomEffect((get, set) => {
   const services = get(gameServicesAtom);
   if (!services) return;
+
+  // Mount local persistence (no-op if not in local mode)
+  get(localPersistenceEffectAtom);
 
   try {
     set(gameSnapshotAtom, services.authority.getSnapshot());
