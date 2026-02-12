@@ -57,13 +57,22 @@ export const gameSubscriptionsAtom = atomEffect((get, set) => {
   // Mount local persistence (no-op if not in local mode)
   get(localPersistenceEffectAtom);
 
+  let initialSnapshot: ReturnType<typeof services.authority.getSnapshot> | undefined;
   try {
-    set(gameSnapshotAtom, services.authority.getSnapshot());
+    initialSnapshot = services.authority.getSnapshot();
+    set(gameSnapshotAtom, initialSnapshot);
   } catch {
     // snapshot not ready yet (remote mode)
   }
 
-  let lastRound = -1;
+  // Seed strokesAtom with any restored strokes
+  const initialStrokes = services.drawSync.getStrokes();
+  if (initialStrokes.length > 0) {
+    set(strokesAtom, initialStrokes);
+  }
+
+  // Start from the current round so the first snapshot doesn't wipe restored strokes
+  let lastRound = initialSnapshot?.context.round ?? -1;
   const unsubGame = services.authority.subscribe((snapshot) => {
     set(gameSnapshotAtom, snapshot);
 
