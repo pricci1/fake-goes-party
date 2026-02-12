@@ -1,11 +1,13 @@
 import { useEffect } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { previousRemoteRoomIdsAtom } from "../atoms/playerIdentityAtoms";
 import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
 import { generateRoomId, getRoomIdFromUrl, setRoomIdInUrl } from "../utils/roomId";
 
 export function ModeSelection() {
   const setMode = useSetAtom(gameModeAtom);
   const setRoomId = useSetAtom(roomIdAtom);
+  const previousRoomIds = useAtomValue(previousRemoteRoomIdsAtom);
 
   // Auto-join if room ID in URL
   useEffect(() => {
@@ -35,6 +37,12 @@ export function ModeSelection() {
       return;
     }
     setRoomId(roomId);
+    setMode("remote");
+  };
+
+  const handleJoinPreviousRoom = (roomId: string) => {
+    setRoomId(roomId);
+    setRoomIdInUrl(roomId);
     setMode("remote");
   };
 
@@ -70,6 +78,23 @@ export function ModeSelection() {
         <br />
         <span className="font-semibold text-gray-700">Remote Mode:</span> Online room. Single or multiple players per device.
       </p>
+
+      {previousRoomIds.length > 0 ? (
+        <div className="flex flex-col items-center gap-3 w-full max-w-md">
+          <p className="text-sm font-semibold text-gray-700">Previous Rooms</p>
+          <div className="flex flex-col gap-2 w-full">
+            {previousRoomIds.map((roomId) => (
+              <button
+                key={roomId}
+                onClick={() => handleJoinPreviousRoom(roomId)}
+                className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
+              >
+                {roomId}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

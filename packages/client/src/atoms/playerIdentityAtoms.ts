@@ -84,3 +84,8 @@ export const myPlayerIndexAtom = atom<number | null>((get) => {
 
   return indices[0] ?? null;
 });
+
+export const previousRemoteRoomIdsAtom = atom((get) => {
+  const storage = get(devicePlayersStorageAtom);
+  return Object.keys(storage).filter((key) => key !== "local");
+});
