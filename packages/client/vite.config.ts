@@ -10,8 +10,8 @@ export default defineConfig({
     injectRegister: false,
 
     manifest: {
-      name: 'fake-goes-party',
-      short_name: 'fake-goes-party',
+      name: 'Fake Goes Party',
+      short_name: 'Fake Goes Party',
       description: 'Fake Goes Party game',
       theme_color: '#ffffff',
       icons: [
