@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  playersAtom,
-  gameSnapshotAtom,
-  registerPlayerIdAtom,
-  myPlayerIndicesAtom,
-  isMultiSeatAtom,
-} from "../atoms";
+import { playersAtom, aiQmAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
@@ -16,10 +10,9 @@ export function Lobby() {
   const players = useAtomValue(playersAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
-  const snapshot = useAtomValue(gameSnapshotAtom);
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
-  const aiQm = snapshot?.context.aiQm ?? false;
+  const aiQm = useAtomValue(aiQmAtom);
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
   const setSpectator = useSetAtom(isSpectatorAtom);
   const [name, setName] = useState("");

@@ -8,3 +8,5 @@ export const currentPhaseAtom = atom((get) => get(gameSnapshotAtom)?.state ?? nu
 export const playersAtom = atom((get) => get(gameSnapshotAtom)?.context.players ?? []);
 
 export const scoresAtom = atom((get) => get(gameSnapshotAtom)?.context.scores ?? []);
+
+export const aiQmAtom = atom((get) => get(gameSnapshotAtom)?.context.aiQm ?? false);

@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom, aiQmAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 
 export function Scoring() {
@@ -7,10 +7,11 @@ export function Scoring() {
   const snapshot = useAtomValue(gameSnapshotAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const aiQm = useAtomValue(aiQmAtom);
 
   if (!snapshot) return null;
 
-  const { players, scores, scoreMessage, fakeArtistIndex, fakeCaught, correctGuess, category, title, aiQm } = snapshot.context;
+  const { players, scores, scoreMessage, fakeArtistIndex, fakeCaught, correctGuess, category, title } = snapshot.context;
   const fakeName = players[fakeArtistIndex ?? 0]?.name ?? "???";
 
   return (

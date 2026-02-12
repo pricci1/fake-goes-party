@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { currentPhaseAtom, gameSnapshotAtom } from "../atoms";
+import { currentPhaseAtom, aiQmAtom } from "../atoms";
 import { isSpectatorAtom } from "../atoms/modeAtoms";
 import { Lobby } from "./Lobby";
 import { CategorySelection } from "./CategorySelection";
@@ -61,8 +61,7 @@ export function PhaseRouter() {
 }
 
 function SpectatorRouter({ phase }: { phase: string | null }) {
-  const snapshot = useAtomValue(gameSnapshotAtom);
-  const aiQm = snapshot?.context.aiQm ?? false;
+  const aiQm = useAtomValue(aiQmAtom);
 
   switch (phase) {
     case "lobby":

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom } from "../atoms";
+import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom, aiQmAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function CategorySelection() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
+  const aiQm = useAtomValue(aiQmAtom);
   const canAct = useAtomValue(canActAtom);
   const actingPlayerName = useAtomValue(actingPlayerNameAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
@@ -15,7 +16,6 @@ export function CategorySelection() {
 
   if (!snapshot) return null;
 
-  const { aiQm } = snapshot.context;
   const qmIndex = snapshot.context.qmIndex;
   const qmName = snapshot.context.players[qmIndex]?.name ?? "QM";
   const playerCount = snapshot.context.players.length;
