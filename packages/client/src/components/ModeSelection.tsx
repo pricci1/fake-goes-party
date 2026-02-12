@@ -66,9 +66,9 @@ export function ModeSelection() {
       </div>
 
       <p className="text-sm text-gray-500 text-center max-w-md">
-        Local mode: Share one device between players.
+        <span className="font-semibold text-gray-700">Local Mode:</span> Share one device between players, offline.
         <br />
-        Online mode: Each player uses their own device.
+        <span className="font-semibold text-gray-700">Remote Mode:</span> Online room. Single or multiple players per device.
       </p>
     </div>
   );
