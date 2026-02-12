@@ -16,9 +16,17 @@ export class LocalGameAuthority implements GameAuthority {
       this.notifyListeners();
     }, initialContext);
 
-    // robot3's service is a plain mutable object — patch to restore phase
+    // robot3 freezes machine objects, so we can't mutate `current` directly.
+    // Instead, derive a new machine (like robot3's internal transitionTo does)
+    // with the saved state as `current`.
     if (initialSnapshot) {
-      this.service.machine.current = initialSnapshot.state;
+      const original = this.service.machine;
+      this.service.machine = Object.freeze(
+        Object.create(original, {
+          current: { enumerable: true, value: initialSnapshot.state },
+          original: { value: original },
+        })
+      );
     }
   }
 
