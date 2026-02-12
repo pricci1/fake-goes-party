@@ -1,0 +1,26 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Build client
+        run: bun --filter @fake-goes-party/client build
+        env:
+          VITE_PARTYKIT_HOST: ${{ secrets.VITE_PARTYKIT_HOST }}
+
+      - name: Deploy server
+        run: bun --filter @fake-goes-party/server deploy
+        env:
+          PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
+          PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }}
