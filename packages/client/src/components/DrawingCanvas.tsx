@@ -21,6 +21,7 @@ interface DrawingCanvasInnerProps {
   canDraw: boolean;
   emphasizeTurn: boolean;
   playerLegend: PlayerLegendItem[];
+  category: string;
 }
 
 function DrawingCanvasInner({
@@ -31,6 +32,7 @@ function DrawingCanvasInner({
   canDraw,
   emphasizeTurn,
   playerLegend,
+  category,
 }: DrawingCanvasInnerProps) {
   const strokes = useAtomValue(strokesAtom);
 
@@ -60,6 +62,7 @@ function DrawingCanvasInner({
           {" "}is up
         </h2>
         <p className="text-sm text-gray-500">Round {drawRound} of 2 — Draw one continuous line</p>
+        <p className="text-md text-gray-500">Category: <b>{category}</b></p>
       </div>
 
       <DrawingCanvasSurface
@@ -132,6 +135,7 @@ export function DrawingCanvas() {
       canDraw={canAct}
       emphasizeTurn={canAct && !isMultiSeat}
       playerLegend={playerLegend}
+      category={ctx.category}
     />
   );
 
