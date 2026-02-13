@@ -9,6 +9,7 @@ import {
 } from "@fake-goes-party/shared";
 import type { ServerMessage, ClientMessage } from "./types.ts";
 import { AiQmProvider } from "../ai/aiQmProvider.ts";
+import { AiGuessEvaluator } from "../ai/aiGuessEvaluator.ts";
 
 type GameMachine = ReturnType<typeof createGameMachine>["machine"];
 type GameService = Service<GameMachine>;
@@ -18,6 +19,8 @@ export default class GameParty implements Party.Server {
   private aiQmProvider = new AiQmProvider();
   private previousCategories: string[] = [];
   private aiQmInFlight = false;
+  private aiGuessEvaluator = new AiGuessEvaluator();
+  private aiGuessEvalInFlight = false;
 
   constructor(readonly room: Party.Room) {}
 
@@ -84,6 +87,12 @@ export default class GameParty implements Party.Server {
               this.broadcastSnapshot();
               return;
             }
+            if (validEvent.type === "SET_AI_GUESS_EVAL") {
+              const ctx = this.service.context;
+              ctx.aiGuessEval = validEvent.enabled;
+              this.broadcastSnapshot();
+              return;
+            }
           }
 
           // Regular state machine transitions
@@ -112,6 +121,7 @@ export default class GameParty implements Party.Server {
     const message: ServerMessage = { type: "snapshot", snapshot };
     this.room.broadcast(JSON.stringify(message));
     this.handleAiQmIfNeeded();
+    this.handleAiGuessEvalIfNeeded();
   }
 
   private handleAiQmIfNeeded(): void {
@@ -164,5 +174,39 @@ export default class GameParty implements Party.Server {
     };
 
     tryGenerate();
+  }
+
+  private handleAiGuessEvalIfNeeded(): void {
+    if (!this.service) return;
+    const currentState = this.service.machine.current;
+    const ctx = this.service.context;
+    if (currentState !== "aiEvaluateGuess") return;
+    if (this.aiGuessEvalInFlight) return;
+
+    this.aiGuessEvalInFlight = true;
+
+    const evaluate = async (): Promise<void> => {
+      try {
+        const result = await this.aiGuessEvaluator.evaluateGuess({
+          title: ctx.title,
+          guess: ctx.fakeGuess,
+          category: ctx.category,
+        });
+        this.service!.send({
+          type: "AI_GUESS_RESULT",
+          correct: result.correct,
+        } as GameEvent);
+      } catch (error) {
+        console.error("AI guess evaluation failed, defaulting to incorrect:", error);
+        this.service!.send({
+          type: "AI_GUESS_RESULT",
+          correct: false,
+        } as GameEvent);
+      } finally {
+        this.aiGuessEvalInFlight = false;
+      }
+    };
+
+    evaluate();
   }
 }
