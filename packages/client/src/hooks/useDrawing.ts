@@ -47,6 +47,7 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
       points: currentPoints,
       drawRound,
       timestamp: Date.now(),
+      normalized: true,
     };
 
     drawSync.pushStroke(stroke);

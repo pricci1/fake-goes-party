@@ -28,7 +28,8 @@ function SpectatorCanvas() {
       <DrawingCanvasSurface
         strokes={strokes}
         playerLegend={playerLegend}
-        canvasClassName="rounded bg-white border-2 border-gray-300"
+        canvasContainerClassName="w-[90vw] max-w-5xl h-[70vh]"
+        canvasClassName="rounded bg-white border-2 border-gray-300 w-full h-full"
       />
     </div>
   );

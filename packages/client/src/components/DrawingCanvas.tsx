@@ -46,9 +46,11 @@ function DrawingCanvasInner({
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
+    const rawX = (e.clientX - rect.left) / rect.width;
+    const rawY = (e.clientY - rect.top) / rect.height;
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: Math.min(Math.max(rawX, 0), 1),
+      y: Math.min(Math.max(rawY, 0), 1),
     };
   };
 
@@ -68,13 +70,14 @@ function DrawingCanvasInner({
       <DrawingCanvasSurface
         strokes={strokes}
         playerLegend={playerLegend}
+        canvasContainerClassName="w-[90vw] max-w-5xl h-[70vh]"
         canvasClassName={`rounded bg-white touch-none ${
           canDraw ? "" : "opacity-80"
         } ${
           emphasizeTurn
             ? "border-4 border-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]"
             : "border-2 border-gray-300"
-        }`}
+        } w-full h-full`}
         inProgressPoints={drawing.inProgressPoints}
         inProgressColor={color}
         onPointerDown={(e) => {

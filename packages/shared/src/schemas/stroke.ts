@@ -15,6 +15,7 @@ export const StrokeSchema = z.object({
   points: z.array(PointSchema).min(1),
   drawRound: z.literal(1).or(z.literal(2)),
   timestamp: z.number(),
+  normalized: z.boolean().optional(),
 });
 
 export type Stroke = z.infer<typeof StrokeSchema>;
