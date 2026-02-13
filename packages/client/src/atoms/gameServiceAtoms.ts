@@ -73,14 +73,18 @@ export const gameSubscriptionsAtom = atomEffect((get, set) => {
 
   // Start from the current round so the first snapshot doesn't wipe restored strokes
   let lastRound = initialSnapshot?.context.round ?? -1;
+  let lastState: string | undefined = initialSnapshot?.state;
   const unsubGame = services.authority.subscribe((snapshot) => {
     set(gameSnapshotAtom, snapshot);
 
-    if (snapshot.context.round !== lastRound) {
-      lastRound = snapshot.context.round;
+    const roundChanged = snapshot.context.round !== lastRound;
+    const returnedToLobby = snapshot.state === "lobby" && lastState !== "lobby";
+    if (roundChanged || returnedToLobby) {
       services.drawSync.clear();
       set(strokesAtom, []);
     }
+    lastRound = snapshot.context.round;
+    lastState = snapshot.state;
   });
 
   const unsubDraw = services.drawSync.onStroke(() => {
