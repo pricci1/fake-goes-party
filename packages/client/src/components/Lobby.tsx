@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { playersAtom, aiQmAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
+import { playersAtom, aiQmAtom, aiGuessEvalAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
@@ -13,6 +13,7 @@ export function Lobby() {
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
   const aiQm = useAtomValue(aiQmAtom);
+  const aiGuessEval = useAtomValue(aiGuessEvalAtom);
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
   const setSpectator = useSetAtom(isSpectatorAtom);
   const [name, setName] = useState("");
@@ -127,20 +128,36 @@ export function Lobby() {
       </p>
 
       {mode === "remote" && (
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={aiQm}
-            onChange={() => dispatch({ type: "SET_AI_QM", enabled: !aiQm })}
-            className="w-4 h-4 accent-purple-600"
-          />
-          <span className="text-sm text-gray-700">
-            AI Question Master
-          </span>
-          <span className="text-xs text-gray-400">
-            (no player sits out)
-          </span>
-        </label>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={aiQm}
+              onChange={() => dispatch({ type: "SET_AI_QM", enabled: !aiQm })}
+              className="w-4 h-4 accent-purple-600"
+            />
+            <span className="text-sm text-gray-700">
+              AI Question Master
+            </span>
+            <span className="text-xs text-gray-400">
+              (no player sits out)
+            </span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={aiGuessEval}
+              onChange={() => dispatch({ type: "SET_AI_GUESS_EVAL", enabled: !aiGuessEval })}
+              className="w-4 h-4 accent-purple-600"
+            />
+            <span className="text-sm text-gray-700">
+              AI Guess Evaluator
+            </span>
+            <span className="text-xs text-gray-400">
+              (accept misspellings & synonyms)
+            </span>
+          </label>
+        </div>
       )}
 
       <button

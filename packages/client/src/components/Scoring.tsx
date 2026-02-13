@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom, aiQmAtom } from "../atoms";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom, aiQmAtom, currentPhaseAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 
 export function Scoring() {
@@ -8,8 +8,18 @@ export function Scoring() {
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
   const aiQm = useAtomValue(aiQmAtom);
+  const phase = useAtomValue(currentPhaseAtom);
 
   if (!snapshot) return null;
+
+  if (phase === "aiEvaluateGuess") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+        <h2 className="text-2xl font-bold">Evaluating Guess...</h2>
+        <p className="text-gray-500 animate-pulse">The AI is deciding if the guess is close enough</p>
+      </div>
+    );
+  }
 
   const { players, scores, scoreMessage, fakeArtistIndex, fakeCaught, correctGuess, category, title } = snapshot.context;
   const fakeName = players[fakeArtistIndex ?? 0]?.name ?? "???";

@@ -45,6 +45,7 @@ export function PhaseRouter() {
       return <VotingScreen />;
     case "scoreFakeWins":
     case "evaluateGuess":
+    case "aiEvaluateGuess":
     case "scoring":
       return <Scoring />;
     case "fakeArtistGuess":
@@ -80,6 +81,7 @@ function SpectatorRouter({ phase }: { phase: string | null }) {
       return <SpectatorView showCanvas message="The fake artist is guessing the word…" />;
     case "scoreFakeWins":
     case "evaluateGuess":
+    case "aiEvaluateGuess":
     case "scoring":
       return <Scoring />;
     case "checkDrawing":
@@ -90,5 +92,5 @@ function SpectatorRouter({ phase }: { phase: string | null }) {
       return <GameOver />;
     default:
       return <SpectatorView message="Loading…" />;
-  }
-}
+    }
+    }
