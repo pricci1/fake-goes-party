@@ -59,6 +59,16 @@ const SetAiQmEvent = z.object({
   enabled: z.boolean(),
 });
 
+const SetAiGuessEvalEvent = z.object({
+  type: z.literal("SET_AI_GUESS_EVAL"),
+  enabled: z.boolean(),
+});
+
+const AiGuessResultEvent = z.object({
+  type: z.literal("AI_GUESS_RESULT"),
+  correct: z.boolean(),
+});
+
 export const GameEventSchema = z.discriminatedUnion("type", [
   AddPlayerEvent,
   RemovePlayerEvent,
@@ -72,6 +82,8 @@ export const GameEventSchema = z.discriminatedUnion("type", [
   ContinueEvent,
   PlayAgainEvent,
   SetAiQmEvent,
+  SetAiGuessEvalEvent,
+  AiGuessResultEvent,
 ]);
 
 export type GameEvent = z.infer<typeof GameEventSchema>;

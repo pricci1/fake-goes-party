@@ -530,3 +530,85 @@ describe("gameMachine — AI QM mode", () => {
     expect(getCtx(s).round).toBe(1);
   });
 });
+
+describe("gameMachine — AI guess evaluation", () => {
+  function setupToFakeGuess(aiGuessEval = false) {
+    const ctx = createInitialContext();
+    ctx.aiQm = true;
+    ctx.aiGuessEval = aiGuessEval;
+    for (let i = 0; i < 4; i++) {
+      ctx.players.push({ id: `p${i}`, name: `Player${i}` });
+      ctx.scores.push(0);
+    }
+    const { machine, initialContext } = createGameMachine(ctx);
+    const s = interpret(machine, () => {}, initialContext);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    for (let i = 0; i < 4; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < 4; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    // All vote for fake → caught
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 0, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 1, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 2, votedForIndex: 2 });
+    s.send({ type: "SUBMIT_VOTES", voterIndex: 3, votedForIndex: 2 });
+    return s;
+  }
+
+  test("exact match still bypasses AI when aiGuessEval is enabled", () => {
+    const s = setupToFakeGuess(true);
+    expect(getState(s)).toBe("fakeArtistGuess");
+    s.send({ type: "GUESS_TITLE", guess: "Cat" });
+    expect(getState(s)).toBe("scoring");
+    expect(getCtx(s).correctGuess).toBe(true);
+  });
+
+  test("non-exact match with aiGuessEval=false → scoring with correctGuess=false", () => {
+    const s = setupToFakeGuess(false);
+    s.send({ type: "GUESS_TITLE", guess: "Dog" });
+    expect(getState(s)).toBe("scoring");
+    expect(getCtx(s).correctGuess).toBe(false);
+  });
+
+  test("non-exact match with aiGuessEval=true → enters aiEvaluateGuess", () => {
+    const s = setupToFakeGuess(true);
+    s.send({ type: "GUESS_TITLE", guess: "Caat" });
+    expect(getState(s)).toBe("aiEvaluateGuess");
+  });
+
+  test("AI_GUESS_RESULT correct=true → scoring with correctGuess=true", () => {
+    const s = setupToFakeGuess(true);
+    s.send({ type: "GUESS_TITLE", guess: "Caat" });
+    expect(getState(s)).toBe("aiEvaluateGuess");
+    s.send({ type: "AI_GUESS_RESULT", correct: true });
+    expect(getState(s)).toBe("scoring");
+    expect(getCtx(s).correctGuess).toBe(true);
+    // Fake caught + correct guess → QM doesn't exist (AI QM), fake gets 2
+    expect(getCtx(s).scores[2]).toBe(2);
+  });
+
+  test("AI_GUESS_RESULT correct=false → scoring with correctGuess=false", () => {
+    const s = setupToFakeGuess(true);
+    s.send({ type: "GUESS_TITLE", guess: "Banana" });
+    expect(getState(s)).toBe("aiEvaluateGuess");
+    s.send({ type: "AI_GUESS_RESULT", correct: false });
+    expect(getState(s)).toBe("scoring");
+    expect(getCtx(s).correctGuess).toBe(false);
+    // Fake caught + wrong guess → artists score +1
+    expect(getCtx(s).scores[0]).toBe(1);
+    expect(getCtx(s).scores[1]).toBe(1);
+    expect(getCtx(s).scores[3]).toBe(1);
+    expect(getCtx(s).scores[2]).toBe(0); // fake gets nothing
+  });
+});

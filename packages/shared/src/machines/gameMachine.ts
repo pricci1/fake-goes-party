@@ -313,6 +313,11 @@ export function createGameMachine(initialContext: GameContext) {
           })
         ),
         immediate(
+          "aiEvaluateGuess",
+          guard((ctx: GameContext) => ctx.aiGuessEval),
+          reduce((ctx: GameContext) => ctx)
+        ),
+        immediate(
           "scoring",
           reduce((ctx: GameContext) => {
             const result = applyScoring({
@@ -327,6 +332,29 @@ export function createGameMachine(initialContext: GameContext) {
               ...ctx,
               scores: result.scores,
               correctGuess: false,
+              scoreMessage: result.scoreMessage,
+            };
+          })
+        )
+      ),
+
+      aiEvaluateGuess: state(
+        transition(
+          "AI_GUESS_RESULT",
+          "scoring",
+          reduce((ctx: GameContext, ev: any) => {
+            const result = applyScoring({
+              scores: ctx.scores,
+              qmIndex: ctx.qmIndex,
+              fakeArtistIndex: ctx.fakeArtistIndex!,
+              fakeCaught: true,
+              correctGuess: ev.correct,
+              playerCount: ctx.players.length,
+            });
+            return {
+              ...ctx,
+              scores: result.scores,
+              correctGuess: ev.correct,
               scoreMessage: result.scoreMessage,
             };
           })

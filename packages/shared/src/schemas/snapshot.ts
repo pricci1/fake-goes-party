@@ -14,6 +14,7 @@ export const GAME_STATES = [
   "scoreFakeWins",
   "fakeArtistGuess",
   "evaluateGuess",
+  "aiEvaluateGuess",
   "scoring",
   "checkWinner",
   "gameOver",

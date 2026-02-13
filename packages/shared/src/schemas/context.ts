@@ -12,6 +12,7 @@ export const GameContextSchema = z.object({
   players: z.array(PlayerSchema),
   round: z.number().int().min(0),
   aiQm: z.boolean(),
+  aiGuessEval: z.boolean(),
   qmIndex: z.number().int().min(-1),
   fakeArtistIndex: z.number().int().min(0).nullable(),
   category: z.string(),
