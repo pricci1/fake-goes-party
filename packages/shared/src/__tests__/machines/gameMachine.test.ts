@@ -4,12 +4,29 @@ import { createGameMachine } from "../../machines/index.ts";
 import { createInitialContext } from "../../logic/index.ts";
 import type { GameContext } from "../../schemas/index.ts";
 import { WIN_THRESHOLD } from "../../constants/index.ts";
+import { getArtistIndices } from "../../logic/index.ts";
 
 type GameService = ReturnType<typeof setup>;
 
-function setup(playerCount = 4, aiQm = false) {
-  const ctx = createInitialContext();
-  ctx.aiQm = aiQm;
+interface SetupOptions {
+  playerCount?: number;
+  aiQm?: boolean;
+  maxDrawRounds?: number;
+  winThreshold?: number;
+}
+
+function setup(playerCountOrOpts: number | SetupOptions = 4, aiQm = false) {
+  let playerCount: number;
+  let opts: SetupOptions;
+  if (typeof playerCountOrOpts === "object") {
+    opts = playerCountOrOpts;
+    playerCount = opts.playerCount ?? 4;
+  } else {
+    opts = { aiQm };
+    playerCount = playerCountOrOpts;
+  }
+  const ctx = createInitialContext(opts.maxDrawRounds, opts.winThreshold);
+  ctx.aiQm = opts.aiQm ?? aiQm;
   for (let i = 0; i < playerCount; i++) {
     ctx.players.push({ id: `p${i}`, name: `Player${i}` });
     ctx.scores.push(0);
@@ -610,5 +627,123 @@ describe("gameMachine — AI guess evaluation", () => {
     expect(getCtx(s).scores[1]).toBe(1);
     expect(getCtx(s).scores[3]).toBe(1);
     expect(getCtx(s).scores[2]).toBe(0); // fake gets nothing
+  });
+});
+
+describe("gameMachine — configurable draw rounds", () => {
+  function setupToDrawing(maxDrawRounds: number, playerCount = 4) {
+    const s = setup({ playerCount, maxDrawRounds });
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    for (let i = 1; i < playerCount; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    return s;
+  }
+
+  test("maxDrawRounds=1 → voting after one round", () => {
+    const s = setupToDrawing(1);
+    const artistCount = 3;
+    expect(getState(s)).toBe("drawingPhase");
+    expect(getCtx(s).drawRound).toBe(1);
+    for (let i = 0; i < artistCount; i++) {
+      s.send({ type: "MARK_MADE" });
+    }
+    expect(getState(s)).toBe("voting");
+  });
+
+  test("maxDrawRounds=3 → three full rounds before voting", () => {
+    const s = setupToDrawing(3);
+    const artistCount = 3;
+
+    for (let round = 1; round <= 3; round++) {
+      expect(getState(s)).toBe("drawingPhase");
+      expect(getCtx(s).drawRound).toBe(round);
+      for (let i = 0; i < artistCount; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    expect(getState(s)).toBe("voting");
+  });
+
+  test("maxDrawRounds=5 → five full rounds before voting", () => {
+    const s = setupToDrawing(5);
+    const artistCount = 3;
+
+    for (let round = 1; round <= 5; round++) {
+      expect(getState(s)).toBe("drawingPhase");
+      expect(getCtx(s).drawRound).toBe(round);
+      for (let i = 0; i < artistCount; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    expect(getState(s)).toBe("voting");
+  });
+});
+
+describe("gameMachine — configurable win threshold", () => {
+  // Drives one full round from categorySelection through scoring.
+  // Dynamically reads qmIndex to send CARDS_REVEALED/votes for the right artists.
+  function driveRound(s: GameService, fakeIndex: number, maxDrawRounds: number) {
+    const ctx = getCtx(s);
+    const artists = getArtistIndices(ctx.players.length, ctx.qmIndex);
+
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: fakeIndex,
+    });
+    for (const idx of artists) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: idx });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    for (let round = 0; round < maxDrawRounds; round++) {
+      for (let i = 0; i < artists.length; i++) {
+        s.send({ type: "MARK_MADE" });
+      }
+    }
+    // Fake not caught: each artist votes for a non-fake artist
+    const nonFake = artists.find((idx) => idx !== fakeIndex)!;
+    for (const voterIndex of artists) {
+      s.send({ type: "SUBMIT_VOTES", voterIndex, votedForIndex: nonFake });
+    }
+  }
+
+  test("winThreshold=1 → gameOver after a single round", () => {
+    const s = setup({ winThreshold: 1 });
+    s.send({ type: "START_GAME" });
+    driveRound(s, 2, 2);
+    expect(getState(s)).toBe("scoring");
+    s.send({ type: "CONTINUE" });
+    expect(getState(s)).toBe("gameOver");
+    expect(getCtx(s).winners.length).toBeGreaterThan(0);
+  });
+
+  test("winThreshold=3 → continues past first round, ends when reached", () => {
+    const s = setup({ winThreshold: 3 });
+    s.send({ type: "START_GAME" });
+
+    // Round 1: fake not caught → QM and fake get +2, not enough for threshold 3
+    driveRound(s, 2, 2);
+    expect(getState(s)).toBe("scoring");
+    s.send({ type: "CONTINUE" });
+    expect(getState(s)).toBe("categorySelection");
+
+    // Round 2: fake not caught again → QM and fake get another +2
+    const ctx = getCtx(s);
+    const artists = getArtistIndices(ctx.players.length, ctx.qmIndex);
+    const fakeIndex = artists[0]!;
+    driveRound(s, fakeIndex, 2);
+    expect(getState(s)).toBe("scoring");
+    s.send({ type: "CONTINUE" });
+    expect(getState(s)).toBe("gameOver");
+    expect(getCtx(s).winners.length).toBeGreaterThan(0);
   });
 });

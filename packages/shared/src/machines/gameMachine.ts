@@ -180,7 +180,7 @@ export function createGameMachine(initialContext: GameContext) {
           guard((ctx: GameContext) => ctx.drawRound < ctx.maxDrawRounds),
           reduce((ctx: GameContext) => ({
             ...ctx,
-            drawRound: 2,
+            drawRound: ctx.drawRound + 1,
             currentDrawerIdx: 0,
           }))
         ),
