@@ -89,7 +89,6 @@ export function DrawingCanvasSurface({
         />
       </div>
       <div className="w-full max-w-md">
-        <p className="text-xs uppercase tracking-wide text-gray-400">Player colors</p>
         <div className="mt-2 flex flex-wrap justify-center gap-3">
           {playerLegend.map((player) => (
             <div key={player.name} className="flex items-center gap-2">
