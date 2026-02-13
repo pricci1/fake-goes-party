@@ -24,3 +24,4 @@ jobs:
         env:
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
           PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
