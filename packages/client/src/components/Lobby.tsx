@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { playersAtom, aiQmAtom, aiGuessEvalAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
+import { playersAtom, aiQmAtom, aiGuessEvalAtom, maxDrawRoundsAtom, winThresholdAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
 import { MIN_PLAYERS } from "@fake-goes-party/shared";
@@ -14,6 +14,8 @@ export function Lobby() {
   const roomId = useAtomValue(roomIdAtom);
   const aiQm = useAtomValue(aiQmAtom);
   const aiGuessEval = useAtomValue(aiGuessEvalAtom);
+  const maxDrawRounds = useAtomValue(maxDrawRoundsAtom);
+  const winThreshold = useAtomValue(winThresholdAtom);
   const registerPlayerId = useSetAtom(registerPlayerIdAtom);
   const setSpectator = useSetAtom(isSpectatorAtom);
   const [name, setName] = useState("");
@@ -126,6 +128,53 @@ export function Lobby() {
       <p className="text-sm text-gray-500">
         {players.length} / {MIN_PLAYERS} players minimum
       </p>
+
+      <div className="flex flex-col gap-3 w-full max-w-sm">
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-gray-700" htmlFor="drawRounds">
+            Draw rounds
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => dispatch({ type: "SET_MAX_DRAW_ROUNDS", value: Math.max(1, maxDrawRounds - 1) })}
+              disabled={maxDrawRounds <= 1}
+              className="w-7 h-7 rounded border text-sm disabled:opacity-30"
+            >
+              -
+            </button>
+            <span className="w-6 text-center text-sm font-medium">{maxDrawRounds}</span>
+            <button
+              onClick={() => dispatch({ type: "SET_MAX_DRAW_ROUNDS", value: Math.min(5, maxDrawRounds + 1) })}
+              disabled={maxDrawRounds >= 5}
+              className="w-7 h-7 rounded border text-sm disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-gray-700" htmlFor="winThreshold">
+            Points to win
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => dispatch({ type: "SET_WIN_THRESHOLD", value: Math.max(1, winThreshold - 1) })}
+              disabled={winThreshold <= 1}
+              className="w-7 h-7 rounded border text-sm disabled:opacity-30"
+            >
+              -
+            </button>
+            <span className="w-6 text-center text-sm font-medium">{winThreshold}</span>
+            <button
+              onClick={() => dispatch({ type: "SET_WIN_THRESHOLD", value: Math.min(20, winThreshold + 1) })}
+              disabled={winThreshold >= 20}
+              className="w-7 h-7 rounded border text-sm disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
 
       {mode === "remote" && (
         <div className="flex flex-col gap-2">

@@ -1,11 +1,17 @@
 import type { GameContext } from "../schemas/index.ts";
+import { MAX_DRAW_ROUNDS, WIN_THRESHOLD } from "../constants/index.ts";
 
-export function createInitialContext(): GameContext {
+export function createInitialContext(
+  maxDrawRounds = MAX_DRAW_ROUNDS,
+  winThreshold = WIN_THRESHOLD,
+): GameContext {
   return {
     players: [],
     round: 0,
     aiQm: false,
     aiGuessEval: false,
+    maxDrawRounds,
+    winThreshold,
     qmIndex: 0,
     fakeArtistIndex: null,
     category: "",

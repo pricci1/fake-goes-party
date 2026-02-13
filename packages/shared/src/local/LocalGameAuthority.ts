@@ -54,6 +54,26 @@ export class LocalGameAuthority implements GameAuthority {
         this.notifyListeners();
         return;
       }
+      if (validEvent.type === "SET_AI_QM") {
+        this.service.context.aiQm = validEvent.enabled;
+        this.notifyListeners();
+        return;
+      }
+      if (validEvent.type === "SET_AI_GUESS_EVAL") {
+        this.service.context.aiGuessEval = validEvent.enabled;
+        this.notifyListeners();
+        return;
+      }
+      if (validEvent.type === "SET_MAX_DRAW_ROUNDS") {
+        this.service.context.maxDrawRounds = validEvent.value;
+        this.notifyListeners();
+        return;
+      }
+      if (validEvent.type === "SET_WIN_THRESHOLD") {
+        this.service.context.winThreshold = validEvent.value;
+        this.notifyListeners();
+        return;
+      }
     }
 
     this.service.send(validEvent);

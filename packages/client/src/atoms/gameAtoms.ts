@@ -12,3 +12,7 @@ export const scoresAtom = atom((get) => get(gameSnapshotAtom)?.context.scores ??
 export const aiQmAtom = atom((get) => get(gameSnapshotAtom)?.context.aiQm ?? false);
 
 export const aiGuessEvalAtom = atom((get) => get(gameSnapshotAtom)?.context.aiGuessEval ?? false);
+
+export const maxDrawRoundsAtom = atom((get) => get(gameSnapshotAtom)?.context.maxDrawRounds ?? 2);
+
+export const winThresholdAtom = atom((get) => get(gameSnapshotAtom)?.context.winThreshold ?? 5);

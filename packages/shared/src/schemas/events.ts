@@ -64,6 +64,16 @@ const SetAiGuessEvalEvent = z.object({
   enabled: z.boolean(),
 });
 
+const SetMaxDrawRoundsEvent = z.object({
+  type: z.literal("SET_MAX_DRAW_ROUNDS"),
+  value: z.number().int().min(1),
+});
+
+const SetWinThresholdEvent = z.object({
+  type: z.literal("SET_WIN_THRESHOLD"),
+  value: z.number().int().min(1),
+});
+
 const AiGuessResultEvent = z.object({
   type: z.literal("AI_GUESS_RESULT"),
   correct: z.boolean(),
@@ -83,6 +93,8 @@ export const GameEventSchema = z.discriminatedUnion("type", [
   PlayAgainEvent,
   SetAiQmEvent,
   SetAiGuessEvalEvent,
+  SetMaxDrawRoundsEvent,
+  SetWinThresholdEvent,
   AiGuessResultEvent,
 ]);
 

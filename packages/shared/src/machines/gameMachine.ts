@@ -7,7 +7,7 @@ import {
   reduce,
 } from "robot3";
 import type { GameContext } from "../schemas/index.ts";
-import { MIN_PLAYERS, WIN_THRESHOLD } from "../constants/index.ts";
+import { MIN_PLAYERS } from "../constants/index.ts";
 import {
   getQmIndex,
   getArtistIndices,
@@ -177,7 +177,7 @@ export function createGameMachine(initialContext: GameContext) {
         ),
         immediate(
           "drawingPhase",
-          guard((ctx: GameContext) => ctx.drawRound < 2),
+          guard((ctx: GameContext) => ctx.drawRound < ctx.maxDrawRounds),
           reduce((ctx: GameContext) => ({
             ...ctx,
             drawRound: 2,
@@ -367,13 +367,13 @@ export function createGameMachine(initialContext: GameContext) {
         immediate(
           "gameOver",
           guard((ctx: GameContext) =>
-            ctx.scores.some((s) => s >= WIN_THRESHOLD)
+            ctx.scores.some((s) => s >= ctx.winThreshold)
           ),
           reduce((ctx: GameContext) => {
             const winners = findWinners(
               ctx.scores,
               ctx.players,
-              WIN_THRESHOLD
+              ctx.winThreshold
             );
             return { ...ctx, winners };
           })

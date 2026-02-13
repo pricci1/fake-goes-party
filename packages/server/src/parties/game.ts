@@ -93,6 +93,18 @@ export default class GameParty implements Party.Server {
               this.broadcastSnapshot();
               return;
             }
+            if (validEvent.type === "SET_MAX_DRAW_ROUNDS") {
+              const ctx = this.service.context;
+              ctx.maxDrawRounds = validEvent.value;
+              this.broadcastSnapshot();
+              return;
+            }
+            if (validEvent.type === "SET_WIN_THRESHOLD") {
+              const ctx = this.service.context;
+              ctx.winThreshold = validEvent.value;
+              this.broadcastSnapshot();
+              return;
+            }
           }
 
           // Regular state machine transitions
