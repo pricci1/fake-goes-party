@@ -5,6 +5,8 @@ import {
   myPlayerIndicesAtom,
   isMultiSeatAtom,
   actingPlayerIndexAtom,
+  allPlayersOnDeviceAtom,
+  gameModeAtom,
 } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
@@ -14,7 +16,10 @@ export function VotingScreen() {
   const snapshot = useAtomValue(gameSnapshotAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
   const [currentStep, setCurrentStep] = useState(0);
+  const [quickSubmitted, setQuickSubmitted] = useState(false);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const allPlayersOnDevice = useAtomValue(allPlayersOnDeviceAtom);
+  const mode = useAtomValue(gameModeAtom);
   const actingPlayerIndex = useAtomValue(actingPlayerIndexAtom);
 
   if (!snapshot) return null;
@@ -23,11 +28,82 @@ export function VotingScreen() {
 
   const voterIndices = drawOrder ?? [];
   const myVoterIndices = voterIndices.filter((idx) => myIndices.includes(idx));
+  const pendingVotes = voterIndices.filter(
+    (index) => submittedVotes[String(index)] === undefined
+  );
+  const isQuickVoting = mode === "local" || (isMultiSeat && allPlayersOnDevice);
+
+  if (isQuickVoting) {
+    const fakeArtistIndex = snapshot.context.fakeArtistIndex;
+    if (quickSubmitted || pendingVotes.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+          {pendingVotes.length === 0 ? (
+            <>
+              <h2 className="text-2xl font-bold">All votes in!</h2>
+              <p className="text-gray-500">Waiting to reveal results.</p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold">Waiting for votes...</h2>
+              <p className="text-gray-500">Still waiting on {pendingVotes.length}.</p>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    if (fakeArtistIndex === null || fakeArtistIndex === undefined) return null;
+
+    const nonFakeIndex = players.findIndex((_, idx) => idx !== fakeArtistIndex);
+
+    const handleQuickVote = (fakeCaught: boolean) => {
+      const confirmed = window.confirm(
+        fakeCaught
+          ? "Confirm: the Fake Artist was caught?"
+          : "Confirm: the Fake Artist got away?"
+      );
+      if (!confirmed) return;
+      const votedForIndex = fakeCaught
+        ? fakeArtistIndex
+        : nonFakeIndex >= 0
+        ? nonFakeIndex
+        : fakeArtistIndex;
+      for (const voterIndex of voterIndices) {
+        dispatch({
+          type: "SUBMIT_VOTES",
+          voterIndex,
+          votedForIndex,
+        });
+      }
+      setQuickSubmitted(true);
+    };
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+        <h2 className="text-2xl font-bold">Was the Fake Artist caught?</h2>
+        <p className="text-gray-500 text-center max-w-md">
+          Everyone votes together. Tap one option to submit the group decision.
+        </p>
+        <div className="flex w-full max-w-sm flex-col gap-3">
+          <button
+            onClick={() => handleQuickVote(true)}
+            className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-left font-semibold text-emerald-700 transition hover:bg-emerald-100"
+          >
+            Fake Artist Caught
+          </button>
+          <button
+            onClick={() => handleQuickVote(false)}
+            className="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-left font-semibold text-rose-700 transition hover:bg-rose-100"
+          >
+            Fake Artist Got Away
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (currentStep >= myVoterIndices.length) {
-    const pendingVotes = voterIndices.filter(
-      (index) => submittedVotes[String(index)] === undefined
-    );
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         {pendingVotes.length === 0 ? (

@@ -69,6 +69,18 @@ export const myPlayerIndicesAtom = atom((get) => {
   return indices;
 });
 
+export const allPlayersOnDeviceAtom = atom((get) => {
+  const mode = get(gameModeAtom);
+  const snap = get(gameSnapshotAtom);
+  if (!snap) return false;
+  if (mode === "local") return true;
+
+  const deviceIds = get(devicePlayerIdsAtom);
+  return snap.context.players.every((player) =>
+    player ? deviceIds.includes(player.id) : false
+  );
+});
+
 export const myPlayerIndexAtom = atom<number | null>((get) => {
   const indices = get(myPlayerIndicesAtom);
   if (indices.length === 0) return null;
