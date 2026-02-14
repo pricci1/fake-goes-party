@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { createInitialContext, resetRoundContext } from "../../logic/index.ts";
+import { DEFAULT_AI_QM_LANGUAGE } from "../../constants/index.ts";
 
 describe("createInitialContext", () => {
   test("creates context with empty defaults", () => {
@@ -21,6 +22,11 @@ describe("createInitialContext", () => {
     expect(ctx.correctGuess).toBeNull();
     expect(ctx.scoreMessage).toBe("");
     expect(ctx.winners).toEqual([]);
+  });
+
+  test("defaults aiQmLanguage to DEFAULT_AI_QM_LANGUAGE", () => {
+    const ctx = createInitialContext();
+    expect(ctx.aiQmLanguage).toBe(DEFAULT_AI_QM_LANGUAGE);
   });
 });
 
@@ -50,5 +56,13 @@ describe("resetRoundContext", () => {
     expect(reset.fakeGuess).toBe("");
     expect(reset.correctGuess).toBeNull();
     expect(reset.scoreMessage).toBe("");
+  });
+
+  test("preserves aiQmLanguage across reset", () => {
+    const ctx = createInitialContext();
+    ctx.aiQmLanguage = "Japanese";
+
+    const reset = resetRoundContext(ctx, 1);
+    expect(reset.aiQmLanguage).toBe("Japanese");
   });
 });

@@ -18,6 +18,7 @@ describe("GameContextSchema", () => {
     round: 0,
     aiQm: false,
     aiGuessEval: false,
+    aiQmLanguage: "English",
     maxDrawRounds: 2,
     winThreshold: 5,
     qmIndex: 0,
@@ -42,6 +43,24 @@ describe("GameContextSchema", () => {
     const result = GameContextSchema.safeParse(validContext);
     expect(result.success).toBe(true);
   });
+
+  test("accepts all valid aiQmLanguage values", () => {
+    for (const lang of ["English", "Spanish", "French", "Portuguese", "German", "Japanese"]) {
+      const result = GameContextSchema.safeParse({ ...validContext, aiQmLanguage: lang });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  test("rejects invalid aiQmLanguage", () => {
+    const result = GameContextSchema.safeParse({ ...validContext, aiQmLanguage: "Klingon" });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects missing aiQmLanguage", () => {
+    const { aiQmLanguage, ...noLang } = validContext;
+    const result = GameContextSchema.safeParse(noLang);
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("GameSnapshotSchema", () => {
@@ -53,6 +72,7 @@ describe("GameSnapshotSchema", () => {
         round: 0,
         aiQm: false,
         aiGuessEval: false,
+        aiQmLanguage: "English",
         maxDrawRounds: 2,
         winThreshold: 5,
         qmIndex: 0,

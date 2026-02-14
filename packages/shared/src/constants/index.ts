@@ -3,6 +3,19 @@ export const MAX_PLAYERS = 10;
 export const MAX_DRAW_ROUNDS = 2;
 export const WIN_THRESHOLD = 5;
 
+export const AI_QM_LANGUAGES = [
+  "English",
+  "Spanish",
+  "French",
+  "Portuguese",
+  "German",
+  "Japanese",
+] as const;
+
+export type AiQmLanguage = (typeof AI_QM_LANGUAGES)[number];
+
+export const DEFAULT_AI_QM_LANGUAGE: AiQmLanguage = "English";
+
 export const AVAILABLE_COLORS = [
   "#E63946", // red
   "#457B9D", // steel blue

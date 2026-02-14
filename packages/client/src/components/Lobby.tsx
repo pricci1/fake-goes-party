@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { playersAtom, aiQmAtom, aiGuessEvalAtom, maxDrawRoundsAtom, winThresholdAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
+import { playersAtom, aiQmAtom, aiQmLanguageAtom, aiGuessEvalAtom, maxDrawRoundsAtom, winThresholdAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
 import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
 import { useGame } from "../providers/GameProvider";
-import { MIN_PLAYERS } from "@fake-goes-party/shared";
+import { MIN_PLAYERS, AI_QM_LANGUAGES } from "@fake-goes-party/shared";
 
 export function Lobby() {
   const { dispatch } = useGame();
@@ -13,6 +13,7 @@ export function Lobby() {
   const mode = useAtomValue(gameModeAtom);
   const roomId = useAtomValue(roomIdAtom);
   const aiQm = useAtomValue(aiQmAtom);
+  const aiQmLanguage = useAtomValue(aiQmLanguageAtom);
   const aiGuessEval = useAtomValue(aiGuessEvalAtom);
   const maxDrawRounds = useAtomValue(maxDrawRoundsAtom);
   const winThreshold = useAtomValue(winThresholdAtom);
@@ -182,7 +183,7 @@ export function Lobby() {
             <input
               type="checkbox"
               checked={aiQm}
-              onChange={() => dispatch({ type: "SET_AI_QM", enabled: !aiQm })}
+              onChange={() => dispatch({ type: "SET_AI_QM", enabled: !aiQm, language: aiQmLanguage })}
               className="w-4 h-4 accent-purple-600"
             />
             <span className="text-sm text-gray-700">
@@ -192,6 +193,20 @@ export function Lobby() {
               (no player sits out)
             </span>
           </label>
+          {aiQm && (
+            <div className="flex items-center gap-2 ml-6">
+              <label className="text-sm text-gray-600">Language:</label>
+              <select
+                value={aiQmLanguage}
+                onChange={(e) => dispatch({ type: "SET_AI_QM", enabled: true, language: e.target.value as typeof aiQmLanguage })}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {AI_QM_LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"

@@ -103,6 +103,32 @@ describe("GameEventSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  test("accepts SET_AI_QM with language", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SET_AI_QM",
+      enabled: true,
+      language: "Spanish",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("accepts SET_AI_QM without language (optional)", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SET_AI_QM",
+      enabled: false,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects SET_AI_QM with invalid language", () => {
+    const result = GameEventSchema.safeParse({
+      type: "SET_AI_QM",
+      enabled: true,
+      language: "Esperanto",
+    });
+    expect(result.success).toBe(false);
+  });
+
   test("rejects SET_AI_QM without enabled", () => {
     const result = GameEventSchema.safeParse({
       type: "SET_AI_QM",

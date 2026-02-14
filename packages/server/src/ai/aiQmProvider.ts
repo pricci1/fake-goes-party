@@ -34,7 +34,8 @@ You are the Question Master. You score points when the Fake Artist blends in und
 Each category should be broad (e.g. "Animals", "Food", "Vehicles", "Musical Instruments").
 Each title should be the most iconic, universally known thing in that category — something anyone can draw in a few strokes (e.g. category "Animals", title "Cat"; category "Fruit", title "Apple").
 
-Keep both the category and title short (1-3 words each). Do not use the examples given above as your answers.${avoidClause}`,
+Keep both the category and title short (1-3 words each). Do not use the examples given above as your answers.${avoidClause}
+Generate the categories and titles in ${context.language}.`,
     });
 
     const chosen = output.options[Math.floor(Math.random() * output.options.length)];

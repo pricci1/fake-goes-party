@@ -84,6 +84,9 @@ export default class GameParty implements Party.Server {
             if (validEvent.type === "SET_AI_QM") {
               const ctx = this.service.context;
               ctx.aiQm = validEvent.enabled;
+              if (validEvent.language) {
+                ctx.aiQmLanguage = validEvent.language;
+              }
               this.broadcastSnapshot();
               return;
             }
@@ -150,6 +153,7 @@ export default class GameParty implements Party.Server {
         const result = await this.aiQmProvider.pickCategoryAndTitle({
           playerCount: ctx.players.length,
           previousCategories: this.previousCategories,
+          language: ctx.aiQmLanguage,
         });
 
         this.previousCategories.push(result.category);

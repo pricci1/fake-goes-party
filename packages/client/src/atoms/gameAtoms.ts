@@ -13,6 +13,8 @@ export const aiQmAtom = atom((get) => get(gameSnapshotAtom)?.context.aiQm ?? fal
 
 export const aiGuessEvalAtom = atom((get) => get(gameSnapshotAtom)?.context.aiGuessEval ?? false);
 
+export const aiQmLanguageAtom = atom((get) => get(gameSnapshotAtom)?.context.aiQmLanguage ?? "English");
+
 export const maxDrawRoundsAtom = atom((get) => get(gameSnapshotAtom)?.context.maxDrawRounds ?? 2);
 
 export const winThresholdAtom = atom((get) => get(gameSnapshotAtom)?.context.winThreshold ?? 5);

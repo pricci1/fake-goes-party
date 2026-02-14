@@ -5,6 +5,8 @@ import {
   MAX_DRAW_ROUNDS,
   WIN_THRESHOLD,
   AVAILABLE_COLORS,
+  AI_QM_LANGUAGES,
+  DEFAULT_AI_QM_LANGUAGE,
 } from "../constants/index.ts";
 
 describe("constants", () => {
@@ -31,5 +33,18 @@ describe("constants", () => {
   test("AVAILABLE_COLORS has no duplicates", () => {
     const unique = new Set(AVAILABLE_COLORS);
     expect(unique.size).toBe(AVAILABLE_COLORS.length);
+  });
+
+  test("AI_QM_LANGUAGES has 6 entries", () => {
+    expect(AI_QM_LANGUAGES.length).toBe(6);
+  });
+
+  test("AI_QM_LANGUAGES has no duplicates", () => {
+    const unique = new Set(AI_QM_LANGUAGES);
+    expect(unique.size).toBe(AI_QM_LANGUAGES.length);
+  });
+
+  test("DEFAULT_AI_QM_LANGUAGE is included in AI_QM_LANGUAGES", () => {
+    expect(AI_QM_LANGUAGES).toContain(DEFAULT_AI_QM_LANGUAGE);
   });
 });

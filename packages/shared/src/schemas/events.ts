@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AI_QM_LANGUAGES } from "../constants/index.ts";
 import { PlayerSchema } from "./player.ts";
 
 const AddPlayerEvent = z.object({
@@ -57,6 +58,7 @@ const PlayAgainEvent = z.object({
 const SetAiQmEvent = z.object({
   type: z.literal("SET_AI_QM"),
   enabled: z.boolean(),
+  language: z.enum(AI_QM_LANGUAGES).optional(),
 });
 
 const SetAiGuessEvalEvent = z.object({

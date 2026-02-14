@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AI_QM_LANGUAGES } from "../constants/index.ts";
 import { PlayerSchema } from "./player.ts";
 
 export const CardSchema = z.object({
@@ -13,6 +14,7 @@ export const GameContextSchema = z.object({
   round: z.number().int().min(0),
   aiQm: z.boolean(),
   aiGuessEval: z.boolean(),
+  aiQmLanguage: z.enum(AI_QM_LANGUAGES),
   qmIndex: z.number().int().min(-1),
   fakeArtistIndex: z.number().int().min(0).nullable(),
   category: z.string(),

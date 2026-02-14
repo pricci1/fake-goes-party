@@ -1,5 +1,5 @@
 import type { GameContext } from "../schemas/index.ts";
-import { MAX_DRAW_ROUNDS, WIN_THRESHOLD } from "../constants/index.ts";
+import { DEFAULT_AI_QM_LANGUAGE, MAX_DRAW_ROUNDS, WIN_THRESHOLD } from "../constants/index.ts";
 
 export function createInitialContext(
   maxDrawRounds = MAX_DRAW_ROUNDS,
@@ -10,6 +10,7 @@ export function createInitialContext(
     round: 0,
     aiQm: false,
     aiGuessEval: false,
+    aiQmLanguage: DEFAULT_AI_QM_LANGUAGE,
     maxDrawRounds,
     winThreshold,
     qmIndex: 0,
@@ -40,6 +41,7 @@ export function resetRoundContext(
     round: nextRound,
     aiQm: ctx.aiQm,
     aiGuessEval: ctx.aiGuessEval,
+    aiQmLanguage: ctx.aiQmLanguage,
     qmIndex: 0,
     fakeArtistIndex: null,
     category: "",
