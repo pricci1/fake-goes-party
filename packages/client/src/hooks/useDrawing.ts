@@ -11,6 +11,19 @@ interface UseDrawingOptions {
   enabled: boolean;
 }
 
+const MIN_STROKE_LENGTH = 0.03;
+
+const getStrokeLength = (points: Point[]) => {
+  if (points.length < 2) return 0;
+  let length = 0;
+  for (let i = 1; i < points.length; i++) {
+    const dx = points[i].x - points[i - 1].x;
+    const dy = points[i].y - points[i - 1].y;
+    length += Math.hypot(dx, dy);
+  }
+  return length;
+};
+
 export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawingOptions) {
   const { drawSync, dispatch } = useGame();
   const drawingKey = useMemo(() => `${playerIndex}-${drawRound}`, [playerIndex, drawRound]);
@@ -37,6 +50,11 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
     const currentPoints = drawingState.inProgressPoints;
     if (currentPoints.length === 0) {
       setDrawingState({ type: "END_STROKE", strokeDone: drawingState.strokeDone });
+      return;
+    }
+
+    if (getStrokeLength(currentPoints) < MIN_STROKE_LENGTH) {
+      setDrawingState({ type: "END_STROKE", strokeDone: false });
       return;
     }
 
