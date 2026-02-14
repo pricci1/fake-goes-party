@@ -2,6 +2,7 @@ import type * as Party from "partykit/server";
 import { interpret, type Service } from "robot3";
 import {
   GameEventSchema,
+  QMContextSchema,
   createGameMachine,
   createInitialContext,
   type GameSnapshot,
@@ -41,6 +42,53 @@ export default class GameParty implements Party.Server {
     // Send current snapshot to newly connected client
     const snapshot = this.getSnapshot();
     conn.send(JSON.stringify({ type: "snapshot", snapshot } as ServerMessage));
+  }
+
+  async onRequest(req: Party.Request): Promise<Response> {
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 200, headers: corsHeaders });
+    }
+
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const parsed = QMContextSchema.safeParse(await req.json());
+      if (!parsed.success) {
+        return new Response(
+          JSON.stringify({ error: "Invalid request body", details: parsed.error }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      const result = await this.aiQmProvider.pickCategoryAndTitle(parsed.data);
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      return new Response(
+        JSON.stringify({
+          error: error instanceof Error ? error.message : "Internal server error",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
   }
 
   onMessage(message: string, sender: Party.Connection): void | Promise<void> {

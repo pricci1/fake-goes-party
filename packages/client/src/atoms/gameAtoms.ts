@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { gameSnapshotAtom } from "./snapshotAtom";
+import { roomIdAtom } from "./modeAtoms";
 
 export { gameSnapshotAtom };
 
@@ -18,3 +19,36 @@ export const aiQmLanguageAtom = atom((get) => get(gameSnapshotAtom)?.context.aiQ
 export const maxDrawRoundsAtom = atom((get) => get(gameSnapshotAtom)?.context.maxDrawRounds ?? 2);
 
 export const winThresholdAtom = atom((get) => get(gameSnapshotAtom)?.context.winThreshold ?? 5);
+
+export const suggestingAtom = atom(false);
+
+export const aiSuggestAtom = atom(
+  null,
+  async (get, set, { playerCount, language }: { playerCount: number; language: string }) => {
+    const roomId = get(roomIdAtom);
+    if (!roomId) return null;
+    set(suggestingAtom, true);
+    try {
+      const partyHost = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
+      const protocol = partyHost.startsWith("localhost") ? "http" : "https";
+      const url = `${protocol}://${partyHost}/parties/game/${roomId}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playerCount,
+          previousCategories: [],
+          language,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to get suggestion");
+      const data = await res.json();
+      return data as { category: string; title: string };
+    } catch (error) {
+      console.error("AI suggestion failed:", error);
+      return null;
+    } finally {
+      set(suggestingAtom, false);
+    }
+  }
+);

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom, aiQmAtom } from "../atoms";
+import { useAtomValue, useSetAtom } from "jotai";
+import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom, aiQmAtom, gameModeAtom, aiQmLanguageAtom, suggestingAtom, aiSuggestAtom } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
+import { AI_QM_LANGUAGES } from "@fake-goes-party/shared";
 
 export function CategorySelection() {
   const { dispatch } = useGame();
@@ -11,8 +12,13 @@ export function CategorySelection() {
   const canAct = useAtomValue(canActAtom);
   const actingPlayerName = useAtomValue(actingPlayerNameAtom);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
+  const gameMode = useAtomValue(gameModeAtom);
+  const aiQmLanguage = useAtomValue(aiQmLanguageAtom);
+  const suggesting = useAtomValue(suggestingAtom);
+  const aiSuggest = useSetAtom(aiSuggestAtom);
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
+  const [suggestLanguage, setSuggestLanguage] = useState(aiQmLanguage);
 
   if (!snapshot) return null;
 
@@ -28,6 +34,14 @@ export function CategorySelection() {
       </div>
     );
   }
+
+  const handleSuggest = async () => {
+    const result = await aiSuggest({ playerCount, language: suggestLanguage });
+    if (result) {
+      setCategory(result.category);
+      setTitle(result.title);
+    }
+  };
 
   const submit = () => {
     if (!category.trim() || !title.trim()) return;
@@ -72,6 +86,30 @@ export function CategorySelection() {
           placeholder="Secret title (e.g. Cat)"
           className="border rounded px-3 py-2"
         />
+        {gameMode === "remote" && (
+          <>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Language:</label>
+              <select
+                value={suggestLanguage}
+                onChange={(e) => setSuggestLanguage(e.target.value as typeof suggestLanguage)}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {AI_QM_LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleSuggest}
+              disabled={suggesting}
+              type="button"
+              className="border border-blue-600 text-blue-600 px-4 py-2 rounded disabled:opacity-50"
+            >
+              {suggesting ? "Generating..." : "✨ AI Suggest"}
+            </button>
+          </>
+        )}
         <button
           onClick={submit}
           disabled={!category.trim() || !title.trim()}
