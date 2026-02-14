@@ -77,7 +77,12 @@ function DrawingCanvasInner({
           emphasizeTurn
             ? "border-4 border-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]"
             : "border-2 border-gray-300"
+        } ${
+          drawing.shortStrokePulse > 0
+            ? "animate-[short-stroke-pulse_0.6s_ease-out]"
+            : ""
         } w-full h-full`}
+        canvasKey={drawing.shortStrokePulse}
         inProgressPoints={drawing.inProgressPoints}
         inProgressColor={color}
         onPointerDown={(e) => {

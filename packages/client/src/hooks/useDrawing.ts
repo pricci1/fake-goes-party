@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { Point, Stroke } from "@fake-goes-party/shared";
 import { useGame } from "../providers/GameProvider";
@@ -11,7 +11,7 @@ interface UseDrawingOptions {
   enabled: boolean;
 }
 
-const MIN_STROKE_LENGTH = 0.03;
+const MIN_STROKE_LENGTH = 0.05;
 
 const getStrokeLength = (points: Point[]) => {
   if (points.length < 2) return 0;
@@ -30,6 +30,7 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
   const drawingAtom = useMemo(() => drawingStateFamily(drawingKey), [drawingKey]);
   const drawingState = useAtomValue(drawingAtom);
   const setDrawingState = useSetAtom(drawingAtom);
+  const [shortStrokePulse, setShortStrokePulse] = useState(0);
 
   useEffect(() => {
     setDrawingState({ type: "RESET" });
@@ -54,6 +55,7 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
     }
 
     if (getStrokeLength(currentPoints) < MIN_STROKE_LENGTH) {
+      setShortStrokePulse(Date.now());
       setDrawingState({ type: "END_STROKE", strokeDone: false });
       return;
     }
@@ -80,6 +82,7 @@ export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawin
   return {
     inProgressPoints: drawingState.inProgressPoints,
     strokeDone: drawingState.strokeDone,
+    shortStrokePulse,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,

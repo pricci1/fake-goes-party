@@ -8,6 +8,7 @@ interface DrawingCanvasSurfaceProps {
   playerLegend: PlayerLegendItem[];
   canvasClassName: string;
   canvasContainerClassName?: string;
+  canvasKey?: number;
   inProgressPoints?: Point[];
   inProgressColor?: string;
   lineWidth?: number;
@@ -22,6 +23,7 @@ export function DrawingCanvasSurface({
   playerLegend,
   canvasClassName,
   canvasContainerClassName,
+  canvasKey,
   inProgressPoints,
   inProgressColor,
   lineWidth = 3,
@@ -80,6 +82,7 @@ export function DrawingCanvasSurface({
     <div className="flex flex-col items-center gap-2">
       <div ref={containerRef} className={canvasContainerClassName}>
         <canvas
+          key={canvasKey}
           ref={canvasRef}
           className={canvasClassName}
           onPointerDown={onPointerDown}
