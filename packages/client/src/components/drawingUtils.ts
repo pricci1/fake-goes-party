@@ -3,6 +3,17 @@ import type { Point, Player } from "@fake-goes-party/shared";
 
 export type PlayerLegendItem = { name: string; color: string };
 
+export function getStrokeLength(points: Point[]) {
+  if (points.length < 2) return 0;
+  let length = 0;
+  for (let i = 1; i < points.length; i++) {
+    const dx = points[i].x - points[i - 1].x;
+    const dy = points[i].y - points[i - 1].y;
+    length += Math.hypot(dx, dy);
+  }
+  return length;
+}
+
 export function drawStrokeOnCanvas(
   ctx: CanvasRenderingContext2D,
   points: Point[],

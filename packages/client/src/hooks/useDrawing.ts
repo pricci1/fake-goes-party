@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import type { Point, Stroke } from "@fake-goes-party/shared";
 import { useGame } from "../providers/GameProvider";
 import { drawingStateFamily } from "../atoms";
+import { getStrokeLength } from "../components/drawingUtils";
 
 interface UseDrawingOptions {
   playerIndex: number;
@@ -12,17 +13,6 @@ interface UseDrawingOptions {
 }
 
 const MIN_STROKE_LENGTH = 0.05;
-
-const getStrokeLength = (points: Point[]) => {
-  if (points.length < 2) return 0;
-  let length = 0;
-  for (let i = 1; i < points.length; i++) {
-    const dx = points[i].x - points[i - 1].x;
-    const dy = points[i].y - points[i - 1].y;
-    length += Math.hypot(dx, dy);
-  }
-  return length;
-};
 
 export function useDrawing({ playerIndex, color, drawRound, enabled }: UseDrawingOptions) {
   const { drawSync, dispatch } = useGame();
