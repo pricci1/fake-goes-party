@@ -10,11 +10,13 @@ import {
 } from "../atoms";
 import { useGame } from "../providers/GameProvider";
 import { DevicePassGuard } from "./DevicePassGuard";
+import { SpectatorCanvas } from "./SpectatorCanvas";
 
 export function VotingScreen() {
   const { dispatch } = useGame();
   const snapshot = useAtomValue(gameSnapshotAtom);
   const myIndices = useAtomValue(myPlayerIndicesAtom);
+  const [showCanvas, setShowCanvas] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [quickSubmitted, setQuickSubmitted] = useState(false);
   const isMultiSeat = useAtomValue(isMultiSeatAtom);
@@ -23,6 +25,21 @@ export function VotingScreen() {
   const actingPlayerIndex = useAtomValue(actingPlayerIndexAtom);
 
   if (!snapshot) return null;
+
+  if (showCanvas) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+        <h2 className="text-2xl font-bold">Review the drawing</h2>
+        <SpectatorCanvas />
+        <button
+          onClick={() => setShowCanvas(false)}
+          className="rounded bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        >
+          Continue to Voting
+        </button>
+      </div>
+    );
+  }
 
   const { players, drawOrder, votes: submittedVotes } = snapshot.context;
 
