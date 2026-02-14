@@ -13,14 +13,21 @@ export class AiQmProvider implements QMProvider {
         : "";
 
     const { output } = await generateText({
-      model: openrouter("google/gemini-2.5-flash-lite"),
-      output: Output.object({schema: z.object({
-        category: z.string().describe("A broad drawing category"),
-        title: z
-          .string()
-          .describe("A specific thing within that category to draw"),
-      })}),
-      prompt: `Pick a category and a drawable title for a ${context.playerCount}-player drawing game called "A Fake Artist Goes to New York".
+      model: openrouter("mistralai/ministral-3b-2512"),
+      temperature: 1.3,
+      output: Output.object({
+        schema: z.object({
+          options: z.array(
+            z.object({
+              category: z.string().describe("A broad drawing category"),
+              title: z
+                .string()
+                .describe("A specific thing within that category to draw"),
+            })
+          ).length(6),
+        })
+      }),
+      prompt: `Pick 6 different categories, each with a drawable title, for a ${context.playerCount}-player drawing game called "A Fake Artist Goes to New York".
 
 The category should be broad (e.g. "Animals", "Food", "Vehicles", "Musical Instruments").
 The title should be a specific, well-known thing within that category that most people can draw with simple strokes (e.g. category "Animals", title "Cat").
@@ -28,6 +35,7 @@ The title should be a specific, well-known thing within that category that most 
 Keep both the category and title short (1-3 words each). The title must be something universally recognizable.${avoidClause}`,
     });
 
-    return output;
+    const chosen = output.options[Math.floor(Math.random() * output.options.length)];
+    return chosen;
   }
 }
