@@ -29,10 +29,12 @@ export class AiQmProvider implements QMProvider {
       }),
       prompt: `Pick 6 different categories, each with a drawable title, for a ${context.playerCount}-player drawing game called "A Fake Artist Goes to New York".
 
-The category should be broad (e.g. "Animals", "Food", "Vehicles", "Musical Instruments").
-The title should be a specific, well-known thing within that category that most people can draw with simple strokes (e.g. category "Animals", title "Cat").
+You are the Question Master. You score points when the Fake Artist blends in undetected, so pick simple, obvious titles that are easy to draw and easy to guess from the category alone. Avoid obscure, tricky, or overly specific topics.
 
-Keep both the category and title short (1-3 words each). The title must be something universally recognizable.${avoidClause}`,
+Each category should be broad (e.g. "Animals", "Food", "Vehicles", "Musical Instruments").
+Each title should be the most iconic, universally known thing in that category — something anyone can draw in a few strokes (e.g. category "Animals", title "Cat"; category "Fruit", title "Apple").
+
+Keep both the category and title short (1-3 words each). Do not use the examples given above as your answers.${avoidClause}`,
     });
 
     const chosen = output.options[Math.floor(Math.random() * output.options.length)];
