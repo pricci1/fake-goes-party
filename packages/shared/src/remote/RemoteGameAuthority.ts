@@ -1,35 +1,20 @@
+import PartySocket from "partysocket";
 import type { GameAuthority, Unsubscribe } from "../interfaces/index.ts";
 import type { GameEvent, GameSnapshot } from "../schemas/index.ts";
 
 export class RemoteGameAuthority implements GameAuthority {
-  private ws: WebSocket | null = null;
+  private socket: PartySocket;
   private listeners = new Set<(snapshot: GameSnapshot) => void>();
   private currentSnapshot: GameSnapshot | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
-  private roomId: string;
-  private partyHost: string;
 
   constructor(roomId: string, partyHost: string = "localhost:1999") {
-    this.roomId = roomId;
-    this.partyHost = partyHost;
-    this.connect();
-  }
+    this.socket = new PartySocket({
+      host: partyHost,
+      room: roomId,
+      party: "game",
+    });
 
-  private connect(): void {
-    const protocol = this.partyHost.startsWith("localhost") ? "ws" : "wss";
-    const url = `${protocol}://${this.partyHost}/parties/game/${this.roomId}`;
-
-    this.ws = new WebSocket(url);
-
-    this.ws.onopen = () => {
-      console.log("[RemoteGameAuthority] Connected");
-      this.reconnectAttempts = 0;
-      this.reconnectDelay = 1000;
-    };
-
-    this.ws.onmessage = (event) => {
+    this.socket.addEventListener("message", (event) => {
       try {
         const message = JSON.parse(event.data as string);
 
@@ -44,45 +29,11 @@ export class RemoteGameAuthority implements GameAuthority {
       } catch (error) {
         console.error("[RemoteGameAuthority] Failed to parse message:", error);
       }
-    };
-
-    this.ws.onclose = () => {
-      console.log("[RemoteGameAuthority] Disconnected");
-      this.attemptReconnect();
-    };
-
-    this.ws.onerror = (error) => {
-      console.error("[RemoteGameAuthority] WebSocket error:", error);
-    };
-  }
-
-  private attemptReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(
-        "[RemoteGameAuthority] Max reconnect attempts reached. Giving up."
-      );
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-
-    console.log(
-      `[RemoteGameAuthority] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
-    );
-
-    setTimeout(() => {
-      this.connect();
-    }, delay);
+    });
   }
 
   dispatch(event: GameEvent): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.error("[RemoteGameAuthority] Cannot dispatch: not connected");
-      return;
-    }
-
-    this.ws.send(JSON.stringify({ type: "event", event }));
+    this.socket.send(JSON.stringify({ type: "event", event }));
   }
 
   subscribe(listener: (snapshot: GameSnapshot) => void): Unsubscribe {
@@ -103,10 +54,7 @@ export class RemoteGameAuthority implements GameAuthority {
   }
 
   disconnect(): void {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
+    this.socket.close();
   }
 
   private notifyListeners(): void {
