@@ -1,14 +1,8 @@
 import { atom } from "jotai";
 import { atomEffect } from "jotai-effect";
-import {
-  LocalGameAuthority,
-  LocalDrawSync,
-  RemoteGameAuthority,
-  RemoteDrawSync,
-  type GameAuthority,
-  type DrawSync,
-  type GameEvent,
-} from "@fake-goes-party/shared";
+import { LocalDrawSync, RemoteDrawSync, type GameAuthority, type DrawSync, type GameEvent } from "@fake-goes-party/shared";
+import { LocalGameAuthority } from "../authorities/LocalGameAuthority.ts";
+import { RemoteGameAuthority } from "../authorities/RemoteGameAuthority.ts";
 import { gameSnapshotAtom } from "./snapshotAtom";
 import { strokesAtom } from "./drawAtoms";
 import { gameModeAtom, roomIdAtom } from "./modeAtoms";

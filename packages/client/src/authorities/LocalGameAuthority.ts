@@ -1,9 +1,9 @@
 import { interpret } from "robot3";
-import type { GameAuthority, Unsubscribe } from "../interfaces/index.ts";
-import { GameEventSchema } from "../schemas/index.ts";
-import type { GameEvent, GameSnapshot } from "../schemas/index.ts";
-import { createGameMachine } from "../machines/index.ts";
-import { createInitialContext } from "../logic/index.ts";
+import type { GameAuthority, Unsubscribe } from "@fake-goes-party/shared";
+import { GameEventSchema } from "@fake-goes-party/shared";
+import type { GameEvent, GameSnapshot } from "@fake-goes-party/shared";
+import { createGameMachine } from "@fake-goes-party/shared";
+import { createInitialContext } from "@fake-goes-party/shared";
 
 export class LocalGameAuthority implements GameAuthority {
   private service;

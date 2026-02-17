@@ -1,6 +1,6 @@
 import PartySocket from "partysocket";
-import type { GameAuthority, Unsubscribe } from "../interfaces/index.ts";
-import type { GameEvent, GameSnapshot } from "../schemas/index.ts";
+import type { GameAuthority, Unsubscribe } from "@fake-goes-party/shared";
+import type { GameEvent, GameSnapshot } from "@fake-goes-party/shared";
 
 export class RemoteGameAuthority implements GameAuthority {
   private socket: PartySocket;
