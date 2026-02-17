@@ -1,6 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
 import type { Point, Stroke } from "@fake-goes-party/shared";
-import { drawStrokeOnCanvas } from "./drawingUtils";
 import type { PlayerLegendItem } from "./drawingUtils";
 
 interface DrawingCanvasSurfaceProps {
@@ -12,10 +11,10 @@ interface DrawingCanvasSurfaceProps {
   inProgressPoints?: Point[];
   inProgressColor?: string;
   lineWidth?: number;
-  onPointerDown?: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  onPointerMove?: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  onPointerUp?: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  onPointerLeave?: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  onPointerDown?: (x: number, y: number, pressure: number) => void;
+  onPointerMove?: (x: number, y: number, pressure: number) => void;
+  onPointerUp?: () => void;
+  onPointerLeave?: () => void;
 }
 
 export function DrawingCanvasSurface({
@@ -41,24 +40,50 @@ export function DrawingCanvasSurface({
     if (!canvas || !container) return;
     const rect = container.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
-    canvas.width = Math.floor(rect.width);
+    // Canvas spans the full window width so pointer events are captured far beyond the
+    // visible rectangle, preventing accidental stroke submission near the borders.
+    canvas.width = window.innerWidth;
     canvas.height = Math.floor(rect.height);
   }, []);
 
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     const canvasCtx = canvas.getContext("2d");
     if (!canvasCtx) return;
 
     canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const containerRect = container.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    // Pixel offset of the visible rectangle's left edge within the full-width canvas.
+    const offsetX = containerRect.left - canvasRect.left;
+    const scaleX = containerRect.width;
+    const scaleY = containerRect.height;
+
+    // Draw normalized [0,1] points into the container-sized region of the full-width canvas.
+    // Points outside [0,1] render beyond the rectangle but are clipped by overflow-hidden.
+    const drawPoints = (points: Point[], color: string) => {
+      if (points.length < 2) return;
+      canvasCtx.beginPath();
+      canvasCtx.strokeStyle = color;
+      canvasCtx.lineWidth = lineWidth;
+      canvasCtx.lineCap = "round";
+      canvasCtx.lineJoin = "round";
+      canvasCtx.moveTo(offsetX + points[0].x * scaleX, points[0].y * scaleY);
+      for (let i = 1; i < points.length; i++) {
+        canvasCtx.lineTo(offsetX + points[i].x * scaleX, points[i].y * scaleY);
+      }
+      canvasCtx.stroke();
+    };
+
     for (const stroke of strokes) {
-      drawStrokeOnCanvas(canvasCtx, stroke.points, stroke.color, lineWidth);
+      drawPoints(stroke.points, stroke.color);
     }
 
     if (inProgressPoints && inProgressPoints.length > 0 && inProgressColor) {
-      drawStrokeOnCanvas(canvasCtx, inProgressPoints, inProgressColor, lineWidth);
+      drawPoints(inProgressPoints, inProgressColor);
     }
   }, [strokes, inProgressPoints, inProgressColor, lineWidth]);
 
@@ -78,17 +103,39 @@ export function DrawingCanvasSurface({
     return () => observer.disconnect();
   }, [renderCanvas, resizeCanvas]);
 
+  // Coordinates relative to the visible container, without clamping, so strokes
+  // drawn outside the border continue naturally on the wider canvas.
+  const getContainerPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
+    const rect = container.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    };
+  };
+
   return (
     <div className="flex flex-col items-center gap-2">
-      <div ref={containerRef} className={canvasContainerClassName}>
+      {/* overflow-hidden clips the full-width canvas to the visible rectangle */}
+      <div ref={containerRef} className={`relative overflow-hidden ${canvasContainerClassName ?? ""}`}>
         <canvas
           key={canvasKey}
           ref={canvasRef}
           className={canvasClassName}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerLeave}
+          style={{ position: "absolute", left: "calc(-50vw + 50%)", width: "100vw", height: "100%" }}
+          onPointerDown={(e) => {
+            // Capture pointer so leaving the rectangle doesn't fire pointerleave mid-stroke.
+            e.currentTarget.setPointerCapture(e.pointerId);
+            const pt = getContainerPoint(e);
+            onPointerDown?.(pt.x, pt.y, e.pressure);
+          }}
+          onPointerMove={(e) => {
+            const pt = getContainerPoint(e);
+            onPointerMove?.(pt.x, pt.y, e.pressure);
+          }}
+          onPointerUp={() => onPointerUp?.()}
+          onPointerLeave={() => onPointerLeave?.()}
         />
       </div>
       <div className="w-full max-w-md">

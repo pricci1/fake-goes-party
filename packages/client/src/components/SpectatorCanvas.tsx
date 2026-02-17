@@ -27,8 +27,8 @@ export function SpectatorCanvas() {
       <DrawingCanvasSurface
         strokes={strokes}
         playerLegend={playerLegend}
-        canvasContainerClassName="w-[90vw] max-w-5xl h-[70vh]"
-        canvasClassName="rounded bg-white border-2 border-gray-300 w-full h-full"
+        canvasContainerClassName="w-[90vw] max-w-5xl h-[70vh] rounded bg-white border-2 border-gray-300"
+        canvasClassName=""
       />
     </div>
   );

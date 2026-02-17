@@ -43,17 +43,6 @@ function DrawingCanvasInner({
     enabled: canDraw,
   });
 
-  const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const rawX = (e.clientX - rect.left) / rect.width;
-    const rawY = (e.clientY - rect.top) / rect.height;
-    return {
-      x: Math.min(Math.max(rawX, 0), 1),
-      y: Math.min(Math.max(rawY, 0), 1),
-    };
-  };
-
   return (
     <div className="flex flex-col items-center min-h-screen p-4 gap-4">
       <div className="text-center">
@@ -70,30 +59,28 @@ function DrawingCanvasInner({
       <DrawingCanvasSurface
         strokes={strokes}
         playerLegend={playerLegend}
-        canvasContainerClassName="w-[90vw] max-w-5xl h-[70vh]"
-        canvasClassName={`rounded bg-white touch-none ${
-          canDraw ? "" : "opacity-80"
+        canvasContainerClassName={`w-[90vw] max-w-5xl h-[70vh] rounded bg-white ${
+          !canDraw ? "opacity-80" : ""
         } ${
           emphasizeTurn
             ? "border-4 border-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]"
             : "border-2 border-gray-300"
-        } ${
+        }`}
+        canvasClassName={`touch-none ${
           drawing.shortStrokePulse > 0
             ? "animate-[short-stroke-pulse_0.6s_ease-out]"
             : ""
-        } w-full h-full`}
+        }`}
         canvasKey={drawing.shortStrokePulse}
         inProgressPoints={drawing.inProgressPoints}
         inProgressColor={color}
-        onPointerDown={(e) => {
+        onPointerDown={(x, y, pressure) => {
           if (!canDraw) return;
-          const pt = getCanvasPoint(e);
-          drawing.handlePointerDown(pt.x, pt.y, e.pressure);
+          drawing.handlePointerDown(x, y, pressure);
         }}
-        onPointerMove={(e) => {
+        onPointerMove={(x, y, pressure) => {
           if (!canDraw) return;
-          const pt = getCanvasPoint(e);
-          drawing.handlePointerMove(pt.x, pt.y, e.pressure);
+          drawing.handlePointerMove(x, y, pressure);
         }}
         onPointerUp={() => {
           if (!canDraw) return;
