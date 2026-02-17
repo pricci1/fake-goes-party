@@ -15,6 +15,7 @@ import {
   isFakeCaught,
   findWinners,
   applyScoring,
+  shuffle,
 } from "../logic/index.ts";
 
 export function createGameMachine(initialContext: GameContext) {
@@ -150,7 +151,7 @@ export function createGameMachine(initialContext: GameContext) {
               ...ctx,
               drawRound: 1,
               currentDrawerIdx: 0,
-              drawOrder: artists,
+              drawOrder: shuffle(artists),
             };
           })
         )

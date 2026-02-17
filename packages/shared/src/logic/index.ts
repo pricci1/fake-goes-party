@@ -5,5 +5,6 @@ export {
   getArtistIndices,
   getArtistIndicesSet,
   findWinners,
+  shuffle,
 } from "./turns.ts";
 export { createInitialContext, resetRoundContext } from "./context.ts";

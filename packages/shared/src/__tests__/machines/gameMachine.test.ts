@@ -747,3 +747,37 @@ describe("gameMachine — configurable win threshold", () => {
     expect(getCtx(s).winners.length).toBeGreaterThan(0);
   });
 });
+
+describe("gameMachine — draw order randomization", () => {
+  // AI QM keeps qmIndex=-1 so artist set is always all 4 players,
+  // making it straightforward to detect lack of shuffling.
+  function getDrawOrder() {
+    const s = setup(4, true);
+    s.send({ type: "START_GAME" });
+    s.send({
+      type: "SET_CATEGORY",
+      category: "Animals",
+      title: "Cat",
+      fakeArtistIndex: 2,
+    });
+    for (let i = 0; i < 4; i++) {
+      s.send({ type: "CARDS_REVEALED", playerIndex: i });
+    }
+    s.send({ type: "COLORS_CHOSEN" });
+    return getCtx(s).drawOrder;
+  }
+
+  test("drawOrder contains every artist index exactly once", () => {
+    const drawOrder = getDrawOrder();
+    expect([...drawOrder].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+  });
+
+  // With 4 players there are 4! = 24 possible orderings. Getting the same one
+  // 30 times in a row by chance is (1/24)^29 ≈ 10^-38 — effectively impossible.
+  test("drawOrder is shuffled differently across independent rounds", () => {
+    const orders = Array.from({ length: 30 }, getDrawOrder);
+    const first = JSON.stringify(orders[0]);
+    const allSame = orders.every((o) => JSON.stringify(o) === first);
+    expect(allSame).toBe(false);
+  });
+});
