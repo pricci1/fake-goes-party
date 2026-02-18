@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom } from "../atoms";
+import { gameSnapshotAtom } from "@fake-goes-party/common";
 
 export function RoundResult() {
   const snapshot = useAtomValue(gameSnapshotAtom);

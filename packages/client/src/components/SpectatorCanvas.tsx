@@ -3,7 +3,7 @@ import {
   gameSnapshotAtom,
   strokesAtom,
   actingPlayerNameAtom,
-} from "../atoms";
+} from "@fake-goes-party/common";
 import { DrawingCanvasSurface } from "./DrawingCanvasSurface";
 import { getPlayerLegend } from "./drawingUtils";
 

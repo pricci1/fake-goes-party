@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
-import { currentPhaseAtom, aiQmAtom } from "../atoms";
-import { isSpectatorAtom } from "../atoms/modeAtoms";
+import { currentPhaseAtom, aiQmAtom } from "@fake-goes-party/common";
+import { isSpectatorAtom } from "@fake-goes-party/common";
 import { Lobby } from "./Lobby";
 import { CategorySelection } from "./CategorySelection";
 import { CardReveal } from "./CardReveal";

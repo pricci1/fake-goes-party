@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { Point, Stroke } from "@fake-goes-party/shared";
 import { useGame } from "../providers/GameProvider";
-import { drawingStateFamily } from "../atoms";
-import { getStrokeLength } from "../components/drawingUtils";
+import { drawingStateFamily } from "../atoms/drawAtoms";
+import { getStrokeLength } from "../utils/drawingUtils";
 
 interface UseDrawingOptions {
   playerIndex: number;

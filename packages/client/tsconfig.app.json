@@ -15,7 +15,8 @@
     "moduleDetection": "force",
     "noEmit": true,
     "paths": {
-      "@fake-goes-party/shared": ["../shared/src/index.ts"]
+      "@fake-goes-party/shared": ["../shared/src/index.ts"],
+      "@fake-goes-party/common": ["../common/src/index.ts"]
     },
     "jsx": "react-jsx",
 

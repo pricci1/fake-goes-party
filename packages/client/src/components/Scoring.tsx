@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom, aiQmAtom, currentPhaseAtom } from "../atoms";
-import { useGame } from "../providers/GameProvider";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom, aiQmAtom, currentPhaseAtom } from "@fake-goes-party/common";
+import { useGame } from "@fake-goes-party/common";
 
 export function Scoring() {
   const { dispatch } = useGame();

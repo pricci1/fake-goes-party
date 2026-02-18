@@ -6,8 +6,8 @@ import {
   actingPlayerNameAtom,
   isMultiSeatAtom,
   actingPlayerIndexAtom,
-} from "../atoms";
-import { useDrawing } from "../hooks/useDrawing";
+} from "@fake-goes-party/common";
+import { useDrawing } from "@fake-goes-party/common";
 import { DevicePassGuard } from "./DevicePassGuard";
 import { DrawingCanvasSurface } from "./DrawingCanvasSurface";
 import type { PlayerLegendItem } from "./drawingUtils";

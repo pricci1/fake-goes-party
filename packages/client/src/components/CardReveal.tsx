@@ -4,8 +4,8 @@ import {
   gameSnapshotAtom,
   myPlayerIndicesAtom,
   isMultiSeatAtom,
-} from "../atoms";
-import { useGame } from "../providers/GameProvider";
+} from "@fake-goes-party/common";
+import { useGame } from "@fake-goes-party/common";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function CardReveal() {

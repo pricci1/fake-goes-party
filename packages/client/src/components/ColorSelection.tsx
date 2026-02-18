@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
-import { useGame } from "../providers/GameProvider";
+import { gameSnapshotAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "@fake-goes-party/common";
+import { useGame } from "@fake-goes-party/common";
 import { AVAILABLE_COLORS } from "@fake-goes-party/shared";
 
 export function ColorSelection() {

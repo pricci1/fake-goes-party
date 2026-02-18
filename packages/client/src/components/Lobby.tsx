@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { playersAtom, aiQmAtom, aiQmLanguageAtom, aiGuessEvalAtom, maxDrawRoundsAtom, winThresholdAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "../atoms";
-import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "../atoms/modeAtoms";
-import { useGame } from "../providers/GameProvider";
+import { playersAtom, aiQmAtom, aiQmLanguageAtom, aiGuessEvalAtom, maxDrawRoundsAtom, winThresholdAtom, registerPlayerIdAtom, myPlayerIndicesAtom, isMultiSeatAtom } from "@fake-goes-party/common";
+import { gameModeAtom, roomIdAtom, isSpectatorAtom } from "@fake-goes-party/common";
+import { useGame } from "@fake-goes-party/common";
 import { MIN_PLAYERS, AI_QM_LANGUAGES } from "@fake-goes-party/shared";
 
 export function Lobby() {

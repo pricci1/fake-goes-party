@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { isSpectatorAtom } from "../atoms/modeAtoms";
+import { isSpectatorAtom } from "@fake-goes-party/common";
 import { SpectatorCanvas } from "./SpectatorCanvas";
 
 interface SpectatorViewProps {

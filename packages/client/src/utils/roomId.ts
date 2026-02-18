@@ -1,6 +1,4 @@
-export function generateRoomId(): string {
-  return crypto.randomUUID();
-}
+export { generateRoomId } from "@fake-goes-party/common";
 
 export function getRoomIdFromUrl(): string | null {
   const params = new URLSearchParams(window.location.search);

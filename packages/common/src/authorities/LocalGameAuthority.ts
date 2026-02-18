@@ -16,9 +16,6 @@ export class LocalGameAuthority implements GameAuthority {
       this.notifyListeners();
     }, initialContext);
 
-    // robot3 freezes machine objects, so we can't mutate `current` directly.
-    // Instead, derive a new machine (like robot3's internal transitionTo does)
-    // with the saved state as `current`.
     if (initialSnapshot) {
       const original = this.service.machine;
       this.service.machine = Object.freeze(

@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { gameSnapshotAtom } from "./snapshotAtom";
+import { partyHostAtom } from "./configAtom";
 import { roomIdAtom } from "./modeAtoms";
 
 export { gameSnapshotAtom };
@@ -29,7 +30,7 @@ export const aiSuggestAtom = atom(
     if (!roomId) return null;
     set(suggestingAtom, true);
     try {
-      const partyHost = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
+      const partyHost = get(partyHostAtom);
       const protocol = partyHost.startsWith("localhost") ? "http" : "https";
       const url = `${protocol}://${partyHost}/parties/game/${roomId}`;
       const res = await fetch(url, {

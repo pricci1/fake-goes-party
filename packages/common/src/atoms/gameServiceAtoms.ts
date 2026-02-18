@@ -1,12 +1,13 @@
 import { atom } from "jotai";
 import { atomEffect } from "jotai-effect";
 import { LocalDrawSync, RemoteDrawSync, type GameAuthority, type DrawSync, type GameEvent } from "@fake-goes-party/shared";
-import { LocalGameAuthority } from "../authorities/LocalGameAuthority.ts";
-import { RemoteGameAuthority } from "../authorities/RemoteGameAuthority.ts";
+import { LocalGameAuthority } from "../authorities/LocalGameAuthority";
+import { RemoteGameAuthority } from "../authorities/RemoteGameAuthority";
 import { gameSnapshotAtom } from "./snapshotAtom";
 import { strokesAtom } from "./drawAtoms";
 import { gameModeAtom, roomIdAtom } from "./modeAtoms";
 import { localRestoreAtom, localPersistenceEffectAtom } from "./localPersistenceAtoms";
+import { partyHostAtom } from "./configAtom";
 
 export interface GameServices {
   authority: GameAuthority;
@@ -30,7 +31,7 @@ export const gameServicesAtom = atom<GameServices | null>((get) => {
     if (!roomId) {
       throw new Error("Room ID required for remote mode");
     }
-    const partyHost = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
+    const partyHost = get(partyHostAtom);
     authority = new RemoteGameAuthority(roomId, partyHost);
     drawSync = new RemoteDrawSync(roomId, partyHost);
   } else {
@@ -48,7 +49,6 @@ export const gameSubscriptionsAtom = atomEffect((get, set) => {
   const services = get(gameServicesAtom);
   if (!services) return;
 
-  // Mount local persistence (no-op if not in local mode)
   get(localPersistenceEffectAtom);
 
   let initialSnapshot: ReturnType<typeof services.authority.getSnapshot> | undefined;
@@ -59,13 +59,11 @@ export const gameSubscriptionsAtom = atomEffect((get, set) => {
     // snapshot not ready yet (remote mode)
   }
 
-  // Seed strokesAtom with any restored strokes
   const initialStrokes = services.drawSync.getStrokes();
   if (initialStrokes.length > 0) {
     set(strokesAtom, initialStrokes);
   }
 
-  // Start from the current round so the first snapshot doesn't wipe restored strokes
   let lastRound = initialSnapshot?.context.round ?? -1;
   let lastState: string | undefined = initialSnapshot?.state;
   const unsubGame = services.authority.subscribe((snapshot) => {

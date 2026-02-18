@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom } from "../atoms";
-import { useGame } from "../providers/GameProvider";
+import { gameSnapshotAtom, canActAtom, actingPlayerNameAtom, isMultiSeatAtom } from "@fake-goes-party/common";
+import { useGame } from "@fake-goes-party/common";
 import { DevicePassGuard } from "./DevicePassGuard";
 
 export function FakeArtistGuess() {

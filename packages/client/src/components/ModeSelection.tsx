@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { previousRemoteRoomIdsAtom } from "../atoms/playerIdentityAtoms";
-import { gameModeAtom, roomIdAtom } from "../atoms/modeAtoms";
+import { previousRemoteRoomIdsAtom } from "@fake-goes-party/common";
+import { gameModeAtom, roomIdAtom } from "@fake-goes-party/common";
 import { generateRoomId, getRoomIdFromUrl, setRoomIdInUrl } from "../utils/roomId";
 import {
   savedLocalGameAtom,
   localRestoreAtom,
   clearLocalGameSaveAtom,
-} from "../atoms/localPersistenceAtoms";
+} from "@fake-goes-party/common";
 
 export function ModeSelection() {
   const setMode = useSetAtom(gameModeAtom);

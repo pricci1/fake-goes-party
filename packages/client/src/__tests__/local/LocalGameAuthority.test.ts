@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { LocalGameAuthority } from "../../authorities/LocalGameAuthority.ts";
+import { LocalGameAuthority } from "@fake-goes-party/common";
 import type { GameSnapshot } from "@fake-goes-party/shared";
 
 function createAuthority(playerCount = 4) {
