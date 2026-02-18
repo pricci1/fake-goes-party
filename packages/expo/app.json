@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Fake Goes Party",
+    "slug": "fake-goes-party-expo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "fakesgoesparty",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "web": {
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
