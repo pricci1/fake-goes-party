@@ -69,6 +69,7 @@
       "name": "@fake-goes-party/expo",
       "version": "0.0.0",
       "dependencies": {
+        "@babel/runtime": "^7.24.0",
         "@fake-goes-party/common": "workspace:*",
         "@fake-goes-party/shared": "workspace:*",
         "expo": "~54.0.33",
