@@ -2,6 +2,7 @@
 module.exports = {
   preset: 'jest-expo',
   testEnvironment: 'node',
+  setupFiles: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
     // Handle both standard node_modules and bun's .bun content-addressable store
     'node_modules/(?!(.bun/)?((jest-)?react-native|@react-native(-community)?|react-native|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@fake-goes-party/.*))',
@@ -9,8 +10,6 @@ module.exports = {
   moduleNameMapper: {
     '^@fake-goes-party/common$': '<rootDir>/../common/src/index.ts',
     '^@fake-goes-party/shared$': '<rootDir>/../shared/src/index.ts',
-    // Shim signal-exit v3 API for write-file-atomic compatibility with bun
-    '^signal-exit$': '<rootDir>/__mocks__/signal-exit.js',
   },
   // Make expo's node_modules available when resolving from workspace packages
   modulePaths: [

@@ -6,7 +6,6 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "outDir": "./dist",
-    "rootDir": "./src",
     "paths": {
       "@fake-goes-party/shared": ["../shared/src/index.ts"]
     }

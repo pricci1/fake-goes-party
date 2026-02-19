@@ -2,6 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowImportingTsExtensions": true,
+    "types": ["jest"],
     "paths": {
       "@/*": ["./*"],
       "@fake-goes-party/shared": ["../shared/src/index.ts"],

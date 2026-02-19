@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "bun --filter '*' typecheck",
+    "test": "bun test packages/shared packages/client",
     "test:expo": "bun --filter '@fake-goes-party/expo' test"
   },
   "workspaces": ["packages/*"],

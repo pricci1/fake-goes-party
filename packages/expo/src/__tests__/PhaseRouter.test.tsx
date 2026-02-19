@@ -37,6 +37,8 @@ function makeStore(phase: string | null = null) {
         drawOrder: [],
         currentDrawerIdx: 0,
         votes: {},
+        cards: [],
+        fakeGuess: '',
         fakeCaught: null,
         correctGuess: null,
         scoreMessage: '',
